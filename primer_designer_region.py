@@ -573,7 +573,8 @@ def get_and_parse_arguments():
 
 
     if ( args.grch37 or args.hg19):
-        REFERENCE = '/mnt/scratch/refs/homo_sapiens/GRCh37/Homo_sapiens_assembly37.fasta'
+        REFERENCE = '/mnt/scratch/refs/human_1kg/human_g1k_v37.fasta'
+	#REFERENCE = '/mnt/scratch/refs/homo_sapiens/GRCh37/Homo_sapiens_assembly37.fasta'
         DBSNP     = '/mnt/scratch/refs/homo_sapiens/GRCh37/annots-rsIDs-dbSNPv144.20150605.tab.gz'
     elif ( args.grch38 ):
         REFERENCE = '/mnt/scratch/refs/homo_sapiens/GRCh38/Homo_sapiens_assembly38.fasta'
