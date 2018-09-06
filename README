@@ -1,0 +1,15 @@
+Program to design primers for the human references GRCh37
+
+TODO:
+
+1) Investigate if the primers would sequence through a homopolymer
+   run, if so annotate them at the top
+
+2) integrate the result from the primer evaluation in to the report
+
+3) add a maximum PCR product length to the
+   primer_evaluation. Currently it checks if a primer set would generate
+   a product upto 2kbp, but for sequencing we dont want anything longer
+   than say 700 bp.
+
+4) 
