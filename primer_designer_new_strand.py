@@ -66,8 +66,8 @@ def get_and_parse_arguments():
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('-p', '--pos', type = int)
     group.add_argument('-r', '--range', nargs=2)
-    group.add_argument('-b', '--blend', type=str,
-    help='Fusion')
+    group.add_argument('-b', '--fusion', type=str,
+    help='The input must be in this format chr1:pos:side:strand_chr2:pos:side:strand, where side = a or b (after or before breakpoint) and strand = 1 or -1')
 
     parser.add_argument('-o', '--output')
     parser.add_argument('-f', '--flank', type = int)
@@ -85,11 +85,11 @@ def get_and_parse_arguments():
     global DBSNP
 
     if (args.grch37 or args.hg19):
-        REFERENCE = '/mnt/archive/scratch_190118/refs/human_1kg/human_g1k_v37.fasta'
-        DBSNP = '/mnt/archive/scratch_190118/refs/homo_sapiens/GRCh37/annots-rsIDs-dbSNPv144.20150605.tab.gz'
+        REFERENCE = '/mnt/storage/data/refs/homo_sapiens/GRCh37/Homo_sapiens_assembly37.fasta'
+        DBSNP = '/mnt/storage/data/refs/homo_sapiens/GRCh37/annots-rsIDs-dbSNPv144.20150605.tab.gz'
     elif (args.grch38):
-        REFERENCE = '/mnt/archive/scratch_190118/refs/homo_sapiens/GRCh38/Homo_sapiens_assembly38.fasta'
-        DBSNP = '/mnt/archive/scratch_190118/refs/homo_sapiens/GRCh37/dbsnp_150_common.vcf.gz'
+        REFERENCE = '/mnt/storage/data/refs/homo_sapiens/GRCh38/Homo_sapiens_assembly38.fasta'
+        DBSNP = '/mnt/storage/data/refs/homo_sapiens/GRCh38/dbsnp_150_common.tab.gz'
     else:
         print "Please select a reference genome to use"
         parser.parse_args('-h')
@@ -248,7 +248,7 @@ def markup_SNPs(dbSNPs, sequence_list, tags, startpos, endpos, FUSION = False, s
             continue
 
         # unpack dbSNP entry.
-        (snp_chr, snp_pos, snp_id, snp_ref, snp_alt, common, vld, caf) = dbSNP
+        (snp_chr, snp_pos, snp_id, snp_ref, snp_alt, common) = dbSNP
 
         snp_pos = int(snp_pos)
        
@@ -1351,6 +1351,8 @@ def main():
     global VERSION
     global VERBOSE
     global FONT
+    global TEMP_FILES 
+
     
     """
     parsing input 
@@ -1362,7 +1364,7 @@ def main():
     if args.range:
         
         startpos, endpos = [int(x) for x in args.range]
-        # print(startpos, endpos)
+        print(startpos, endpos)
 
     elif args.blend: 
         fusion = args.blend
@@ -1398,6 +1400,7 @@ def main():
     else: 
 
         target_sequence = fetch_region( chrom, startpos - FLANK, endpos + FLANK) 
+        print(target_sequence)
         marked_sequence, tagged_string = markup_sequence(FLANK, target_sequence, FUSION, chrom, startpos, endpos)
         
         if startpos == endpos:
@@ -1468,9 +1471,9 @@ def main():
     c.save()
 
 
-    # for filename in     TMP_FILES:
-    #     print "deleting tmp file: %s " % filename 
-    #     os.remove(filename)
+    for filename in TMP_FILES:
+        print ("deleting tmp file: %s " % filename)
+        os.remove(filename)
 
 
 
