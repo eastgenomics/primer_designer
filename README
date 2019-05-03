@@ -36,12 +36,13 @@ Example:
   (optional) A flag to output the report in .txt format 
 
 -f 
-  (optional) A flag to change the FLANK region used to design primers around 
+  (optional) A flag to change the FLANK region used to design primers around. It is the numebr of bases before and after the indicated position. 
 
 *** 
 
 ## To do
-1. Show in report if primers were not found for that particular run  
+1. Show in report if primers were not found for that particular run 
+2. Prevent the script from choosing the best primer near a poly-region 
 
 ##Description 
 For a detailed description of the script please read this [Confluence page]()
