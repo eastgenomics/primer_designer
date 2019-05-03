@@ -9,9 +9,9 @@ Primer Designer is a program to design primers for the human reference genome.
 Example:
 
 ```bash
-./primer_designer_new_strand.py -c 9 -p 12345678 --grch37 #outputs a PDF report around chr 9 pos 12345678 
-./primer_designer_new_strand.py -c 9 -r 12345678 12346678 --grch37 #outputs a PDF report for a range
-./primer_designer_new_strand.py -b 9:123456789:b:1_8:12345678:a:-1 --grch37 -t #outputs a PDF and TXT reports for a fusion   
+./primer_designer.py -c 9 -p 12345678 --grch37 #outputs a PDF report around chr 9 pos 12345678 
+./primer_designer.py -c 9 -r 12345678 12346678 --grch37 #outputs a PDF report for a range
+./primer_designer.py -b 9:123456789:b:1_8:12345678:a:-1 --grch37 -t #outputs a PDF and TXT reports for a fusion   
 ```
 -c 
   (required for the position and range only) Specifies the chromosome  
@@ -41,13 +41,13 @@ Example:
 *** 
 
 ## To do
-1. Show in report if primers were not found for that particular run 
-2. Prevent the script from choosing the best primer near a poly-region 
+[] Show in report if primers were not found for that particular run 
+[] Prevent the script from choosing the best primer near a poly-region 
 
-##Description 
-For a detailed description of the script please read this [Confluence page]()
+## Description 
+For a detailed description of how to run the script and what has been done for fusion genes please read this [Confluence page](https://cuhbioinformatics.atlassian.net/wiki/spaces/BT/pages/481099798/Running+PrimerDesigner+for+fusion+genes)
 
-##Authors And Acknowledgement 
+## Authors And Acknowledgement 
 
 * Kim Brugger 
 
@@ -58,9 +58,4 @@ Current maintainers:
 * Nikita Povarnitsyn  
 
 ## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
-
-## License
-[MIT](https://choosealicense.com/licenses/mit/)
+Contributions are more than welcome. 
