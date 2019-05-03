@@ -9,9 +9,9 @@ Primer Designer is a program to design primers for the human reference genome.
 Example:
 
 ```bash
-./primer_designer.py -c 9 -p 12345678 --grch37 #outputs a PDF report around chr 9 pos 12345678 
-./primer_designer.py -c 9 -r 12345678 12346678 --grch37 #outputs a PDF report for a range
-./primer_designer.py -b 9:123456789:b:1_8:12345678:a:-1 --grch37 -t #outputs a PDF and TXT reports for a fusion   
+./primer_designer_region.py -c 9 -p 12345678 --grch37 #outputs a PDF report around chr 9 pos 12345678 
+./primer_designer_region.py -c 9 -r 12345678 12346678 --grch37 #outputs a PDF report for a range
+./primer_designer_region.py -b 9:123456789:b:1_8:12345678:a:-1 --grch37 -t #outputs a PDF and TXT reports for a fusion   
 ```
 -c 
   (required for the position and range only) Specifies the chromosome  
