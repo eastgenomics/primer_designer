@@ -66,7 +66,7 @@ def get_and_parse_arguments():
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('-p', '--pos', type = int)
     group.add_argument('-r', '--range', nargs=2)
-    group.add_argument('-b', '--fusion', type=str,
+    group.add_argument('-b', '--blend', type=str,
     help='The input must be in this format chr1:pos:side:strand_chr2:pos:side:strand, where side = a or b (after or before breakpoint) and strand = 1 or -1')
 
     parser.add_argument('-o', '--output')
@@ -100,7 +100,6 @@ def fetch_region(chrom, start, end):
     """Gets the sequence of interest based 
     on the reference genome and the coordinates"""
     verbose_print("fetch_region", 2)
-
     cmd = "%s faidx %s  %s:%d-%d " % (SAMTOOLS, REFERENCE, chrom, start, end)
     args = shlex.split(cmd)
     p = subprocess.Popen(args, stdout=subprocess.PIPE)
@@ -246,9 +245,9 @@ def markup_SNPs(dbSNPs, sequence_list, tags, startpos, endpos, FUSION = False, s
 
         if (len(dbSNP) < 6):
             continue
-
+        print(dbSNP)
         # unpack dbSNP entry.
-        (snp_chr, snp_pos, snp_id, snp_ref, snp_alt, common) = dbSNP
+        (snp_chr, snp_pos, snp_id, snp_ref, snp_alt, common) = dbSNP[0:6]
 
         snp_pos = int(snp_pos)
        
@@ -627,6 +626,8 @@ def check_primers(region_id, target_region, primer3_dict):
                 continue
 
             line = line.rstrip("\n")
+            print("#")
+            print(line)
             fields = line.split("\t")
             match['name'] = fields[0]  # mapping_score
             match['chromosome'] = fields[2]  # chromosome
@@ -1364,7 +1365,6 @@ def main():
     if args.range:
         
         startpos, endpos = [int(x) for x in args.range]
-        print(startpos, endpos)
 
     elif args.blend: 
         fusion = args.blend
@@ -1393,14 +1393,13 @@ def main():
             dicts['DARK_SIDE'] = ''
 
         target_sequence, tagged_string, marked_sequence = flip_fusion_seq(seqs)
-      
+
         region_id = fusion 
         
     # Normal run: when either a position or range is passed 
     else: 
 
         target_sequence = fetch_region( chrom, startpos - FLANK, endpos + FLANK) 
-        print(target_sequence)
         marked_sequence, tagged_string = markup_sequence(FLANK, target_sequence, FUSION, chrom, startpos, endpos)
         
         if startpos == endpos:
