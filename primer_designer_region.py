@@ -1381,32 +1381,22 @@ def main():
             region_id = "{}_{}".format( chrom, startpos)
         else:
             region_id = "{}_{}_{}".format( chrom, startpos, endpos)
-
-    
+ 
     """
     Primer design using PRIMER3 and alignment using SMALT. 
     Picking best primers. 
     """        
     #Creating primers and choosing the best ones; and converting to strings 
 
-    primer3_results = run_primer3(region_id, marked_sequence)
-    print("@@@@@@@")
-    print(primer3_results)
-    
+    primer3_results = run_primer3(region_id, marked_sequence)    
     passed_primers = check_primers(region_id, target_sequence, primer3_results, chrom, startpos, endpos, FUSION, seqs)
-    print(passed_primers)
-
     passed_primer_seqs = extract_passed_primer_seqs(primer3_results, passed_primers)
     
-    
-   
     if not FUSION: 
         #Converting the primers into strings which can be out into the PDF report 
         mapped_primer_strings, mapped_primer_colours = make_primer_mapped_strings(target_sequence, passed_primer_seqs)
         lines = pretty_print_mappings( target_sequence, tagged_string, mapped_primer_strings, startpos - FLANK)
 
-
-    
     """
     Generation of the report
     """
@@ -1414,7 +1404,6 @@ def main():
 
     if args.output:
         filename = args.output + "_" + filename
-
 
     if args.text_output: 
         pretty_primer_data("{}.txt".format(filename, primer3_results, passed_primers, chrom, startpos, endpos, fwd_primer, rev_primer, target_sequence, FUSION, seqs))
@@ -1438,7 +1427,6 @@ def main():
     
     else:
         c.setFont('mono', 6)
-        print("################")
         print(FUSION, chrom, startpos, endpos)
         top_offset = pretty_pdf_primer_data(c, height - 30, primer3_results, passed_primers, width, FUSION, chrom, startpos, endpos)
         c.setFont('mono', 8)
@@ -1448,14 +1436,10 @@ def main():
     c.showPage()
     c.save()
 
-
     for filename in TMP_FILES:
         print ("deleting tmp file: %s " % filename)
         os.remove(filename)
 
-
-
-    
 
 if (__name__ == '__main__'):
 
