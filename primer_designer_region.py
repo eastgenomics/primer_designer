@@ -103,7 +103,7 @@ def fetch_region(chrom, start, end):
     on the reference genome and the coordinates
     """
     verbose_print("fetch_region", 2)
-    cmd = "%s faidx %s  %s:%d-%d " % (SAMTOOLS, REFERENCE, chrom, start, end)
+    cmd = "{} faidx {}  {}:{}-{} ".format(SAMTOOLS, REFERENCE, chrom, start, end)
     args = shlex.split(cmd)
     p = subprocess.Popen(args, stdout=subprocess.PIPE)
 
@@ -114,7 +114,7 @@ def fetch_region(chrom, start, end):
             continue
 
         sequence += line
-    return sequence
+    return(sequence)
 
 def nest_fusion_input(coordins): 
     """ nesting the input in case of fusion
@@ -342,7 +342,7 @@ def fetch_known_SNPs(tabix_file, chrom, start, end):
     """
     verbose_print("fetch_known_SNPs", 5)
 
-    cmd = "%s %s  %s:%d-%d " % (TABIX, tabix_file, chrom, start, end)
+    cmd = "{} {}  {}:{}-{} ".format(TABIX, tabix_file, chrom, start, end)
 
     verbose_print(cmd, 3)
 
@@ -419,7 +419,7 @@ def run_primer3(seq_id, seq, primer3_file=""):
 
     write_primer3_file(seq_id, seq, primer3_file)
 
-    cmd = "%s < %s" % (PRIMER3, primer3_file)
+    cmd = "{} < {}".format(PRIMER3, primer3_file)
 
     process = subprocess.Popen(cmd,
                                stdout=subprocess.PIPE,
@@ -618,14 +618,14 @@ def check_primers(region_id, target_region, primer3_dict, chromo, startpos, endp
         primerfasta.write(">FULLSEQ\n" + target_region + "\n")
 
         for i in range(0, 5):
-            pl_id = "PRIMER_LEFT_%d_SEQUENCE" % i
-            pr_id = "PRIMER_RIGHT_%d_SEQUENCE" % i
+            pl_id = "PRIMER_LEFT_{}_SEQUENCE".format(i)
+            pr_id = "PRIMER_RIGHT_{}_SEQUENCE".format(i)
 
             if (pr_id not in primer3_dict or pl_id not in primer3_dict):
                 continue
 
-            primerfasta.write(">%s\n%s\n" % (pl_id, primer3_dict[pl_id]))
-            primerfasta.write(">%s\n%s\n" % (pr_id, primer3_dict[pr_id]))
+            primerfasta.write(">{}\n{}\n".format(pl_id, primer3_dict[pl_id]))
+            primerfasta.write(">{}\n{}\n".format(pr_id, primer3_dict[pr_id]))
 
         primerfasta.close()
 
@@ -924,17 +924,16 @@ def pretty_pdf_primer_data(c, y_offset, primer3_results, passed_primers, width, 
     if FUSION: 
 
         c.drawString(
-            40, y_offset, "Primer design report for a fusion between chr: %s position: %s and chr: %s position: %s " % (
+            40, y_offset, "Primer design report for a fusion between chr: {} position: {} and chr: {} position: {} ".format(
                 coord_dict[0]['CHR'], coord_dict[0]['POS'], coord_dict[1]['CHR'], coord_dict[1]['POS']))
 
     else: 
 
         if (startpos == endpos):
             c.drawString(
-                40, y_offset, "Primer design report for chr %s position: %d" % (chrom, startpos))
+                40, y_offset, "Primer design report for chr {} position: {}".format(chrom, startpos))
         else:
-            c.drawString(40, y_offset, "Primer design report for chr: %s range: %d-%d" %
-                         (chrom, startpos, endpos))
+            c.drawString(40, y_offset, "Primer design report for chr: {} range: {}-{}".format(chrom, startpos, endpos))
 
     y_offset -= 8
     c.line(40, y_offset, width - 40, y_offset + 2)
@@ -1201,14 +1200,14 @@ def pretty_primer_data(outfile, primer3_results, passed_primers, chrom, startpos
 
     lines = []
     if FUSION: 
-        lines.append("Primer design report for a fusion between chr: %s position: %s and chr: %s position: %s " % (
+        lines.append("Primer design report for a fusion between chr: {} position: {} and chr: {} position: {} ".format(
                 coord_dict[0]['CHR'], coord_dict[0]['POS'], coord_dict[1]['CHR'], coord_dict[1]['POS']))
     
     elif startpos == endpos:
-        lines.append("Primer design report for chr: %s position: %d" % (chr, startpos))
+        lines.append("Primer design report for chr: {} position: {}".format(chr, startpos))
     
     else:
-        lines.append("Primer design report for chr: %s range: %d-%d" % (chr, startpos, endpos))
+        lines.append("Primer design report for chr: {} range: {}-{}".format(chr, startpos, endpos))
 
     lines.append("ID\t%GC\tTM\tPrimer sequence\tBest primer\tMapping(s)")
 
@@ -1289,9 +1288,9 @@ def pretty_print_primer_data(primer3_results, passed_primers ):
     lines.append( "_-=-"*15 +"_" )
 
     if ( startpos == endpos ):
-        lines.append( " Primer design report for chr: %s position: %d" % (chr, startpos))
+        lines.append( " Primer design report for chr: {} position: {}".format(chr, startpos))
     else:
-        lines.append( " Primer design report for chr: %s range: %d-%d" % (chr, startpos, endpos))
+        lines.append( " Primer design report for chr: {} range: {}-{}".format(chr, startpos, endpos))
 
     lines.append( "_-=-"*15 +"_")
     lines.append( "\n")
@@ -1390,9 +1389,9 @@ def main():
         print(marked_sequence)
         
         if startpos == endpos:
-            region_id = "%s_%d" % ( chrom, startpos)
+            region_id = "{}_{}".format( chrom, startpos)
         else:
-            region_id = "%s_%d_%d" % ( chrom, startpos, endpos)
+            region_id = "{}_{}_{}".format( chrom, startpos, endpos)
 
     
     """
@@ -1429,7 +1428,7 @@ def main():
 
 
     if args.text_output: 
-        pretty_primer_data("%s.txt" % filename, primer3_results, passed_primers, chrom, startpos, endpos, fwd_primer, rev_primer, target_sequence, FUSION, seqs) 
+        pretty_primer_data("{}.txt".format(filename, primer3_results, passed_primers, chrom, startpos, endpos, fwd_primer, rev_primer, target_sequence, FUSION, seqs))
         # print "\n".join(lines)
 
     else: 
