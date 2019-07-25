@@ -96,7 +96,7 @@ def get_and_parse_arguments():
         print "Please select a reference genome to use"
         parser.parse_args('-h')
 
-    return args
+    return(args)
 
 def fetch_region(chrom, start, end):
     """Gets the sequence of interest based 
@@ -271,8 +271,7 @@ def markup_SNPs(dbSNPs, sequence_list, tags, startpos, endpos, FUSION = False, s
 
         if (len(dbSNP) < 6):
             continue
-        print(dbSNP)
-        # unpack dbSNP entry.
+        
         (snp_chr, snp_pos, snp_id, snp_ref, snp_alt, common) = dbSNP[0:6]
 
         snp_pos = int(snp_pos)
@@ -304,7 +303,6 @@ def markup_SNPs(dbSNPs, sequence_list, tags, startpos, endpos, FUSION = False, s
         else:
 
             if snp_pos >= startpos - TARGET_LEAD and snp_pos <= endpos + TARGET_LEAD:
-                
                 continue
 
             if common == '0': 
@@ -350,12 +348,12 @@ def fetch_known_SNPs(tabix_file, chrom, start, end):
     p = subprocess.Popen(args, stdout=subprocess.PIPE)
 
     output = p.communicate()
-    vars = []
+    var = []
 
     for line in (output[0].split("\n")):
-        vars.append(line.split("\t"))
+        var.append(line.split("\t"))
 
-    return vars
+    return (var)
 
 def flip_fusion_seq(seqs_dict): 
     """Flips a sequence in case two same sides relative to breakpoint are added"""
@@ -401,7 +399,7 @@ def flip_fusion_seq(seqs_dict):
         print("This fusion is not possible")
         sys.exit()
 
-    return target_sequence, tagged_string, marked_sequence
+    return(target_sequence, tagged_string, marked_sequence)
 
 def run_primer3(seq_id, seq, primer3_file=""):
     """
@@ -410,7 +408,7 @@ def run_primer3(seq_id, seq, primer3_file=""):
     """
     verbose_print("run_primer3", 2)
 
-    if (primer3_file == ""):
+    if primer3_file == "":
         primer3_file = seq_id + ".primer3"
 
     primer3_file = re.sub("[<>:]", "_", primer3_file)
@@ -429,14 +427,14 @@ def run_primer3(seq_id, seq, primer3_file=""):
     output_dict = dict()
 
     for line in output[0].split("\n"):
-        if (line == '='):
+        if line == '=':
             break
 
         key, value = line.split("=")
 
         output_dict[key] = value
 
-    return output_dict  
+    return(output_dict)
 
 def write_primer3_file(seq_id, seq, primer3_file=""):
     """
@@ -621,7 +619,7 @@ def check_primers(region_id, target_region, primer3_dict, chromo, startpos, endp
             pl_id = "PRIMER_LEFT_{}_SEQUENCE".format(i)
             pr_id = "PRIMER_RIGHT_{}_SEQUENCE".format(i)
 
-            if (pr_id not in primer3_dict or pl_id not in primer3_dict):
+            if pr_id not in primer3_dict or pl_id not in primer3_dict:
                 continue
 
             primerfasta.write(">{}\n{}\n".format(pl_id, primer3_dict[pl_id]))
@@ -674,6 +672,7 @@ def check_primers(region_id, target_region, primer3_dict, chromo, startpos, endp
     
     left_dict = {}
     right_dict = {}
+    
     if FUSION: 
         """as there might be 2 different sequences on 2 chromosomes
            the dictionary has to be broken down and summaries have to be made separately
@@ -708,7 +707,7 @@ def check_primers(region_id, target_region, primer3_dict, chromo, startpos, endp
         mydict = primer_report(chromo, startpos, endpos, mydict)
 
 
-    return(mydict)
+    return (mydict)
 
 def merge_dicts(*dict_args):
     """
@@ -759,7 +758,7 @@ def primer_report(chromo, startpos, endpos, mydict):
             mydict[k]['MAPPING_SUMMARY'] = '{} mapping(s)'.format(len(uniq_chr+mis_chr))
 
 
-    return mydict
+    return (mydict)
 
 def extract_passed_primer_seqs(primer3_results, passed_primers):
     """
@@ -778,7 +777,7 @@ def extract_passed_primer_seqs(primer3_results, passed_primers):
 
         primer_seqs.append([name, primer3_results[primer]])
         
-    return primer_seqs
+    return (primer_seqs)
 
 
 
@@ -798,7 +797,7 @@ def make_primer_mapped_strings(target_sequence, passed_primer_seqs):
     mapped_colours.append([-1] * len(target_sequence))
 
     for mapping in mappings:
-        (name, primer, pos, strand) = mapping
+        name, primer, pos, strand = mapping
 
         primer_nr = int(re.sub(r'.*_(\d)', r'\1', name))
 
@@ -807,12 +806,12 @@ def make_primer_mapped_strings(target_sequence, passed_primer_seqs):
         arrows = (len(primer) - len(name) - 2) / 2
         arrow_type = ">"
         #if the primer is on the reverse strand            
-        if (strand == 1):
+        if strand == 1:
             primer = revDNA(primer)
             arrow_type = "<"
 
         tag = arrow_type * arrows + " " + name + " " + arrow_type * arrows
-        if (len(tag) < len(primer)):
+        if len(tag) < len(primer):
             tag += arrow_type
 
         primer = tag
@@ -821,10 +820,10 @@ def make_primer_mapped_strings(target_sequence, passed_primer_seqs):
 
         scan_index = 0
         while(1):
-            if (check_if_primer_clash(mapped_strings[scan_index], pos, pos + len(primer))):
+            if check_if_primer_clash(mapped_strings[scan_index], pos, pos + len(primer)):
                 scan_index += 1
 
-                if (len(mapped_strings) >= scan_index):
+                if len(mapped_strings) >= scan_index:
                     mapped_strings.append([" "] * len(target_sequence))
                     mapped_colours.append([-1] * len(target_sequence))
 
@@ -840,7 +839,7 @@ def make_primer_mapped_strings(target_sequence, passed_primer_seqs):
     for i in range(0, len(mapped_strings)):
         mapped_strings[i] = "".join(mapped_strings[i])
 
-    return mapped_strings, mapped_colours
+    return (mapped_strings, mapped_colours)
 
 
 
@@ -855,7 +854,7 @@ def align_primers_to_seq(seq, all_primers):
     
 
     for primer_set in all_primers:
-        (name, primer) = primer_set
+        name, primer = primer_set
         primers.append([name, primer])
         rev_primers.append([name, revDNA(primer)])
 
@@ -867,18 +866,18 @@ def align_primers_to_seq(seq, all_primers):
             (name, primer) = primer_set
             primer_len = len(primer)
 
-            if ("".join(seq[i:i + primer_len]) == primer):
+            if "".join(seq[i:i + primer_len]) == primer:
                 mappings.append([name, primer, i, 0])
 
         for primer_set in rev_primers:
-            (name, primer) = primer_set
+            name, primer = primer_set
             primer_len = len(primer)
 
 
-            if ("".join(seq[i:i + primer_len]) == primer):
+            if "".join(seq[i:i + primer_len]) == primer:
                 mappings.append([name, primer, i, 1])
 
-    return mappings
+    return (mappings)
 
 def check_if_primer_clash(mapped_list, start, end):
     """
@@ -886,7 +885,7 @@ def check_if_primer_clash(mapped_list, start, end):
     """
     verbose_print("check_if_primers_clash", 4)
     for i in range(start, end):
-        if (mapped_list[i] != " "):
+        if mapped_list[i] != " ":
             return True
 
     return False
@@ -910,7 +909,7 @@ def revDNA(string):
     for i in range(0, len(string)):
         rev_str[len(string) - i - 1] = rev_bases[string[i]]
 
-    return "".join(rev_str)
+    return ("".join(rev_str))
 
 def pretty_pdf_primer_data(c, y_offset, primer3_results, passed_primers, width, FUSION= False, 
     chrom = None, startpos = None, endpos = None, coord_dict=None):
@@ -929,7 +928,7 @@ def pretty_pdf_primer_data(c, y_offset, primer3_results, passed_primers, width, 
 
     else: 
 
-        if (startpos == endpos):
+        if startpos == endpos:
             c.drawString(
                 40, y_offset, "Primer design report for chr {} position: {}".format(chrom, startpos))
         else:
@@ -982,7 +981,7 @@ def pretty_pdf_primer_data(c, y_offset, primer3_results, passed_primers, width, 
     y_offset -= 8
     y_offset -= 8
 
-    return y_offset
+    return (y_offset)
 
 def pretty_pdf_fusion_mappings(top_offset, c, coord_dict, passed_primer_seqs, FUSION=False):
     """Function to interogate the nested dictionary. Firstly the first sequence with the 
@@ -1047,7 +1046,7 @@ def pretty_pdf_fusion_mappings(top_offset, c, coord_dict, passed_primer_seqs, FU
             top_offset = pretty_pdf_mappings(top_offset, target_sequence, tagged_string, primer_strings, primer_colours, base1, c, side, darkside)
                 
 
-    return top_offset
+    return (top_offset)
 
 def pretty_pdf_mappings(top_offset,  target_sequence, tagged_string, primer_strings, primer_colours, base1, c, side = None, darkside = None):
     
@@ -1088,13 +1087,13 @@ def pretty_pdf_mappings(top_offset,  target_sequence, tagged_string, primer_stri
         x_offset = 40
         for k in range(0, len(p_line)):
         #Setting colour of the SNPs and the indicated position 
-            if (m_line[k] == "X"):
+            if m_line[k] == "X":
                 c.setFillColorRGB(255, 0, 0)
-            elif (m_line[k] == "*"):
+            elif m_line[k] == "*":
                 c.setFillColorRGB(0, 190, 0)
-            elif (m_line[k] == "+"): 
+            elif m_line[k] == "+": 
                 c.setFillColorRGB( 0, 0, 255)
-            elif (m_line[k] == "^"):
+            elif m_line[k] == "^":
                 c.setFillColorRGB(0, 0, 255)
     
 
@@ -1107,7 +1106,7 @@ def pretty_pdf_mappings(top_offset,  target_sequence, tagged_string, primer_stri
         m_line = re.sub(r'X', r' ', m_line)
     
 
-        if (re.search(r'\*', m_line) or re.search(r'\-', m_line)):
+        if re.search(r'\*', m_line) or re.search(r'\-', m_line):
             #setting colour for the TARGET LEAD (50 base pairs around the position of interest)
             c.setFillColorRGB(0, 190, 0)
             c.drawString(40, top_offset, m_line)
@@ -1126,10 +1125,10 @@ def pretty_pdf_mappings(top_offset,  target_sequence, tagged_string, primer_stri
             x_offset = 40 + stringWidth(" ", 'mono', 8) * 11
 
             for k in range(i, i + 80):
-                if (k > len(target_sequence) - 1):
+                if k > len(target_sequence) - 1:
                     break
 
-                if (primer_colour[k] >= 0):
+                if primer_colour[k] >= 0:
 
                     c.setFillColorRGB(colours[primer_colour[k]][0],
                                       colours[primer_colour[k]][1],
@@ -1143,7 +1142,7 @@ def pretty_pdf_mappings(top_offset,  target_sequence, tagged_string, primer_stri
 
         top_offset -= 8
 
-    return top_offset
+    return (top_offset)
 
 def pretty_pdf_method(top_offset, args, c, seqs = None):
     verbose_print("pretty_pdf_method", 3)
@@ -1185,7 +1184,7 @@ def method_blurb(args, seqs = None):
     lines.append(
         'allele of frequency >= 1% and for which 2 or more founders contribute to that minor allele frequency.')
 
-    return lines
+    return (lines)
 
 def pretty_primer_data(outfile, primer3_results, passed_primers, chrom, startpos, endpos, target_sequence=None, FUSION=False, coord_dict=None):
     """
@@ -1251,25 +1250,15 @@ def pretty_print_mappings( target_sequence, tagged_string, primer_strings, base1
         for primer_string in ( primer_strings ):
 
             line =  "           " + primer_string[i: i+80]
-            if ( re.match(r'^ *$', line)):
+            
+            if re.match(r'^ *$', line):
                 continue
+            
             lines.append( line )
 
         lines.append( "" )
 
-    return lines
-
-    lines.append( "Map keys::" )
-    lines.append( "XXXXXX excluded region" )
-    lines.append( "****** target" )
-    lines.append( ">>>>>> left primer" )
-    lines.append( "<<<<<< right primer" )
-
-    lines.append( "\n" )
-    lines.append( "\n" )
-
-    return lines
-
+    return (lines)
 
 
 def pretty_print_primer_data(primer3_results, passed_primers ):
@@ -1300,7 +1289,7 @@ def pretty_print_primer_data(primer3_results, passed_primers ):
 
     primer_seqs = []
     for primer in sorted(passed_primers):
-        if ( primer == 'FULLSEQ'):
+        if primer == 'FULLSEQ':
             continue
 
         name = primer
