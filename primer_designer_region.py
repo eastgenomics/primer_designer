@@ -222,7 +222,7 @@ def markup_sequence(flank, sequence, FUSION=False, chrom = None, startpos = None
 
         for x in range(0, len(tags)):
             # Tagging the central 501st base
-            if (x >= start and x <= end):
+            if x >= start and x <= end:
                 tags[x] = '*'
             # TARGET_LEAD is 50 bases, 50 bases up nad down the central nucleotide are tagged
             if x in range(start - TARGET_LEAD, start) or x in range(end, end + TARGET_LEAD):
@@ -269,7 +269,7 @@ def markup_SNPs(dbSNPs, sequence_list, tags, startpos, endpos, FUSION = False, s
 
     for dbSNP in dbSNPs:
 
-        if (len(dbSNP) < 6):
+        if len(dbSNP) < 6:
             continue
         
         (snp_chr, snp_pos, snp_id, snp_ref, snp_alt, common) = dbSNP[0:6]
@@ -604,7 +604,6 @@ def check_primers(region_id, target_region, primer3_dict, chromo, startpos, endp
     """
     verbose_print("check_primers", 2)
 
-    print(region_id)
     region_id = re.sub("[<>:]", "_", region_id)
 
     primers_file = region_id + "_p3seq.fasta"
@@ -635,7 +634,7 @@ def check_primers(region_id, target_region, primer3_dict, chromo, startpos, endp
     cmd = "{} map  -d -1 -m 15 {} {} > {}  ".format(
         SMALT, ref, primers_file, smalt_results)
 
-    print cmd
+    print(cmd)
 
     verbose_print(cmd, 4)
     subprocess.call(cmd, shell=True)
@@ -702,7 +701,6 @@ def check_primers(region_id, target_region, primer3_dict, chromo, startpos, endp
 
 
     else: 
-        print(mydict)
         #declare chrom ,start ,end 
         mydict = primer_report(chromo, startpos, endpos, mydict)
 
@@ -725,16 +723,11 @@ def primer_report(chromo, startpos, endpos, mydict):
     Creating a nested dictionary with summary report for each primer
     """
 
-    print("@@@@@@@@@@@@@@@@@@@@@")
-    print(chromo, startpos, endpos)
-
     for k, v in mydict.iteritems():
         uniq_chr = []
         mis_chr = []
 
         for pos, chrom in enumerate(mydict[k]['CHR']):
-            print(mydict[k]['CHR'][pos], mydict[k]['POS'][pos], mydict[k]['MISMATCH'][pos])
-            print(int(mydict[k]['POS'][pos]))
 
             if mydict[k]['CHR'][pos] == chromo and int(mydict[k]['POS'][pos]) in range(startpos - FLANK, endpos+1+FLANK) and mydict[k]['MISMATCH'][pos] == '0': 
                 uniq_chr.append(mydict[k]['CHR'][pos])
@@ -743,10 +736,6 @@ def primer_report(chromo, startpos, endpos, mydict):
                 mis_chr.append(mydict[k]['CHR'][pos])  
 
 
-        print("************")
-        print(uniq_chr)
-        print(mis_chr)
-            
         if len(uniq_chr) == 1 and len(mis_chr) == 0: 
 
             mydict[k]['MAPPING_SUMMARY'] = 'unique mapping'
@@ -915,7 +904,6 @@ def pretty_pdf_primer_data(c, y_offset, primer3_results, passed_primers, width, 
     chrom = None, startpos = None, endpos = None, coord_dict=None):
     """Adds the header primer information to the output PDF file"""
     verbose_print("pretty_pdf_primer_data", 2)
-    print(passed_primers)
     c.line(40, y_offset, width - 40, y_offset + 2)
     y_offset -= 8
 
@@ -1373,9 +1361,6 @@ def main():
 
         target_sequence = fetch_region( chrom, startpos - FLANK, endpos + FLANK) 
         marked_sequence, tagged_string = markup_sequence(FLANK, target_sequence, FUSION, chrom, startpos, endpos)
-
-        print(tagged_string)
-        print(marked_sequence)
         
         if startpos == endpos:
             region_id = "{}_{}".format( chrom, startpos)
@@ -1441,6 +1426,6 @@ def main():
         os.remove(filename)
 
 
-if (__name__ == '__main__'):
+if __name__ == '__main__':
 
     main()
