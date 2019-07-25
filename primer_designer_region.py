@@ -1412,7 +1412,6 @@ def main():
     
     else:
         c.setFont('mono', 6)
-        print(FUSION, chrom, startpos, endpos)
         top_offset = pretty_pdf_primer_data(c, height - 30, primer3_results, passed_primers, width, FUSION, chrom, startpos, endpos)
         c.setFont('mono', 8)
         pretty_pdf_mappings(top_offset, target_sequence, tagged_string, mapped_primer_strings, mapped_primer_colours, startpos - FLANK,  c)
