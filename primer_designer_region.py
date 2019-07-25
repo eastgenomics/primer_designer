@@ -84,11 +84,11 @@ def get_and_parse_arguments():
     global REFERENCE
     global DBSNP
 
-    if (args.grch37 or args.hg19):
+    if args.grch37 or args.hg19:
         REFERENCE = '/mnt/storage/data/refs/homo_sapiens/GRCh37/Homo_sapiens_assembly37.fasta'
         DBSNP = '/mnt/storage/data/refs/homo_sapiens/GRCh37/dbsnp_151_grch37.tab.gz'
     
-    elif (args.grch38):
+    elif args.grch38:
         REFERENCE = '/mnt/storage/data/refs/homo_sapiens/GRCh38/Homo_sapiens_assembly38.fasta'
         DBSNP = '/mnt/storage/data/refs/homo_sapiens/GRCh38/dbsnp_150_common.tab.gz'
    
@@ -110,11 +110,12 @@ def fetch_region(chrom, start, end):
     output = p.communicate()
     sequence = ""
     for line in (output[0].split("\n")):
-        if (re.match('>', line)):
+        if re.match('>', line):
             continue
 
         sequence += line
-    return(sequence)
+    
+    return (sequence)
 
 def nest_fusion_input(coordins): 
     """ nesting the input in case of fusion
@@ -128,6 +129,7 @@ def nest_fusion_input(coordins):
     for coordinate in coordinates: 
         instance=coordinate.split(":")
         
+        #replacing the a/b with symbols, cos i wrote the whole script with symbols and was lazy to replace them 
         if instance[2] == "a": 
             instance[2] = re.sub('a','<', instance[2])
 
@@ -137,7 +139,7 @@ def nest_fusion_input(coordins):
         nest[i]={'CHR':instance[0], 'POS':instance[1], 'SIDE':instance[2], 'STRAND':instance[3]}
         i+=1
 
-    return(nest)
+    return (nest)
 
 def fetch_fusion_seqs(coord_dict):
     """
@@ -146,21 +148,17 @@ def fetch_fusion_seqs(coord_dict):
     for regionid, region_dict in coord_dict.items():
 
         if region_dict['SIDE'] == "<":
-            seq=fetch_region(region_dict['CHR'], int(region_dict['POS']), int(region_dict['POS'])+FLANK)
-            
-            coord_dict[regionid]['SEQ']=seq
+            coord_dict[regionid]['SEQ']= fetch_region(region_dict['CHR'], int(region_dict['POS']), int(region_dict['POS'])+FLANK)
 
         elif region_dict['SIDE'] == ">": 
-            seq=fetch_region(region_dict['CHR'], int(region_dict['POS'])-FLANK, int(region_dict['POS']))
-           
-            coord_dict[regionid]['SEQ']=seq
+            coord_dict[regionid]['SEQ'] = fetch_region(region_dict['CHR'], int(region_dict['POS'])-FLANK, int(region_dict['POS']))
 
         else: 
             print("The fusion sequence was marked incorrectly. \n"+
                 "The signs to be used: <>. The sign used: "+region_dict['SIDE'])
             break
 
-    return(coord_dict)
+    return (coord_dict)
 
 def markup_sequence(flank, sequence, FUSION=False, chrom = None, startpos = None, endpos = None): 
     """
@@ -244,7 +242,7 @@ def markup_sequence(flank, sequence, FUSION=False, chrom = None, startpos = None
 
 def markup_repeats(tags, sequence):
     """
-    marks the repeats in the sequence
+    marks the repeats in the sequence longer than 6 bases
     """
     regex = r"(.{1,})\1\1\1\1\1+"
     matches = re.finditer(regex, sequence, re.MULTILINE)
@@ -252,9 +250,12 @@ def markup_repeats(tags, sequence):
 
         print ("Match {matchNum} was found at {start}-{end}: {match}".format(matchNum = matchNum, start = match.start(), end = match.end(), match = match.group()))
         match_len = len(match.group())
+        
         for x in range (match.start(), match.end()):
+            
             if match_len >= 10: 
                 tags[x] = '^'
+            
             elif match_len < 10: 
                 tags[x] = '+'
 
@@ -272,7 +273,7 @@ def markup_SNPs(dbSNPs, sequence_list, tags, startpos, endpos, FUSION = False, s
         if len(dbSNP) < 6:
             continue
         
-        (snp_chr, snp_pos, snp_id, snp_ref, snp_alt, common) = dbSNP[0:6]
+        snp_chr, snp_pos, snp_id, snp_ref, snp_alt, common = dbSNP[0:6]
 
         snp_pos = int(snp_pos)
        
@@ -318,7 +319,7 @@ def markup_SNPs(dbSNPs, sequence_list, tags, startpos, endpos, FUSION = False, s
             if len(sequence_list) <= mask_pos + i:
                 break
 
-                    # If already masked skip masking it again.
+            # If already masked skip masking it again.
             if re.search('<', sequence_list[mask_pos + i]) or re.search('\[', sequence_list[mask_pos + i  ]):
                 continue
 
@@ -350,7 +351,7 @@ def fetch_known_SNPs(tabix_file, chrom, start, end):
     output = p.communicate()
     var = []
 
-    for line in (output[0].split("\n")):
+    for line in output[0].split("\n"):
         var.append(line.split("\t"))
 
     return (var)
@@ -399,7 +400,7 @@ def flip_fusion_seq(seqs_dict):
         print("This fusion is not possible")
         sys.exit()
 
-    return(target_sequence, tagged_string, marked_sequence)
+    return (target_sequence, tagged_string, marked_sequence)
 
 def run_primer3(seq_id, seq, primer3_file=""):
     """
@@ -434,7 +435,7 @@ def run_primer3(seq_id, seq, primer3_file=""):
 
         output_dict[key] = value
 
-    return(output_dict)
+    return (output_dict)
 
 def write_primer3_file(seq_id, seq, primer3_file=""):
     """
@@ -678,8 +679,10 @@ def check_primers(region_id, target_region, primer3_dict, chromo, startpos, endp
            of each other"""
 
         for key in mydict:
+            
             if "RIGHT" in key:
                 right_dict[key] = mydict[key]
+            
             elif "LEFT" in key:
                 left_dict[key] = mydict[key]
 
@@ -800,6 +803,7 @@ def make_primer_mapped_strings(target_sequence, passed_primer_seqs):
             arrow_type = "<"
 
         tag = arrow_type * arrows + " " + name + " " + arrow_type * arrows
+        
         if len(tag) < len(primer):
             tag += arrow_type
 
@@ -808,7 +812,9 @@ def make_primer_mapped_strings(target_sequence, passed_primer_seqs):
         primer = list(primer)
 
         scan_index = 0
+        
         while(1):
+           
             if check_if_primer_clash(mapped_strings[scan_index], pos, pos + len(primer)):
                 scan_index += 1
 
@@ -873,7 +879,9 @@ def check_if_primer_clash(mapped_list, start, end):
     Checks whether the primers clash
     """
     verbose_print("check_if_primers_clash", 4)
+    
     for i in range(start, end):
+        
         if mapped_list[i] != " ":
             return True
 
@@ -895,6 +903,7 @@ def revDNA(string):
                  '-': '-'}
 
     rev_str = len(string) * [None]
+    
     for i in range(0, len(string)):
         rev_str[len(string) - i - 1] = rev_bases[string[i]]
 
@@ -919,6 +928,7 @@ def pretty_pdf_primer_data(c, y_offset, primer3_results, passed_primers, width, 
         if startpos == endpos:
             c.drawString(
                 40, y_offset, "Primer design report for chr {} position: {}".format(chrom, startpos))
+       
         else:
             c.drawString(40, y_offset, "Primer design report for chr: {} range: {}-{}".format(chrom, startpos, endpos))
 
@@ -933,13 +943,14 @@ def pretty_pdf_primer_data(c, y_offset, primer3_results, passed_primers, width, 
     y_offset -= 8
 
     primer_seqs = []
+    
     for primer in sorted(passed_primers):
 
         name = primer
         name = re.sub(r'PRIMER_', '', name)
         name = re.sub(r'_SEQUENCE', '', name)
 
-        if (name == "RIGHT_0"):
+        if name == "RIGHT_0":
             y_offset -= 8
 
         picked_primer = ' '
@@ -1235,7 +1246,7 @@ def pretty_print_mappings( target_sequence, tagged_string, primer_strings, base1
         lines.append("%-9d  %s" % ( base1+ i, target_sequence[i: i+80]))
         lines.append("           " + tagged_string[i: i+80])
 
-        for primer_string in ( primer_strings ):
+        for primer_string in primer_strings:
 
             line =  "           " + primer_string[i: i+80]
             
@@ -1264,7 +1275,7 @@ def pretty_print_primer_data(primer3_results, passed_primers ):
     lines.append( "\n" )
     lines.append( "_-=-"*15 +"_" )
 
-    if ( startpos == endpos ):
+    if startpos == endpos:
         lines.append( " Primer design report for chr: {} position: {}".format(chr, startpos))
     else:
         lines.append( " Primer design report for chr: {} range: {}-{}".format(chr, startpos, endpos))
