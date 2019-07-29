@@ -123,7 +123,6 @@ def nest_fusion_input(coordins):
     """
     nest={}
     coordinates=coordins.split("_")
-    # print(coordinates)
     i=0
 
     for coordinate in coordinates: 
@@ -226,7 +225,7 @@ def markup_sequence(flank, sequence, FUSION=False, chrom = None, startpos = None
             if x in range(start - TARGET_LEAD, start) or x in range(end, end + TARGET_LEAD):
                 tags[x] = '-'
 
-    # verbose_print("::::: %d - %d, %d" % (startpos, endpos, flank), 5)
+ 
             # Tag the target sequence (50 bases up and down the central nucleotide), regardless of the nature of the variant only one (1) base is tagged as the target.
         sequence_list[flank - TARGET_LEAD] = ' [' + sequence[flank - TARGET_LEAD]
         sequence_list[(- flank + TARGET_LEAD) - 1] = sequence_list[(- flank + TARGET_LEAD) - 1] + '] '
@@ -718,7 +717,7 @@ def merge_dicts(*dict_args):
     result = {}
     for dictionary in dict_args:
         result.update(dictionary)
-    return result
+    return (result)
 
     
 def primer_report(chromo, startpos, endpos, mydict):
@@ -750,8 +749,6 @@ def primer_report(chromo, startpos, endpos, mydict):
             mydict[k]['MAPPING_SUMMARY'] = '{} mapping(s)'.format(len(uniq_chr+mis_chr))
 
 
-    print("@@@@@@@@")
-    print(mydict)
     return (mydict)
 
 def extract_passed_primer_seqs(primer3_results, passed_primers):
