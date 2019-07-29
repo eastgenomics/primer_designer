@@ -750,6 +750,8 @@ def primer_report(chromo, startpos, endpos, mydict):
             mydict[k]['MAPPING_SUMMARY'] = '{} mapping(s)'.format(len(uniq_chr+mis_chr))
 
 
+    print("@@@@@@@@")
+    print(mydict)
     return (mydict)
 
 def extract_passed_primer_seqs(primer3_results, passed_primers):
@@ -955,7 +957,7 @@ def pretty_pdf_primer_data(c, y_offset, primer3_results, passed_primers, width, 
 
         picked_primer = ' '
 
-        c.drawString(40, y_offset, "%-10s %.2f  %.2f  %-25s             %s            " % ("",
+        c.drawString(40, y_offset, "{:10} {:.2f}  {:.2f}  {:25}             {}            ".format("",
                                                                                  float(
                                                                                      primer3_results["PRIMER_" + name + "_GC_PERCENT"]),
                                                                                  float(
@@ -1063,24 +1065,24 @@ def pretty_pdf_mappings(top_offset,  target_sequence, tagged_string, primer_stri
         if FUSION: 
             
             if side == '>' and darkside == '>': 
-                p_line = "%-9d  %s" % (base1 + i, target_sequence[i: i + 80])
+                p_line = "{}  {}".foramt(base1 + i, target_sequence[i: i + 80])
                 m_line = "           " + tagged_string[i: i + 80]
 
             elif side == '<' and darkside == '<':
-                p_line = "%-9d  %s" % (base1 + i - len(spaces), target_sequence[i: i + 80])
+                p_line = "{}  {}".foramt(base1 + i - len(spaces), target_sequence[i: i + 80])
                 m_line = "           " + tagged_string[i: i + 80] 
 
             elif side == '>' and darkside == '<':
-                p_line = "%-9d  %s" % (base1 - i + len(spaces), target_sequence[i: i + 80])
+                p_line = "{}  {}".foramt(base1 - i + len(spaces), target_sequence[i: i + 80])
                 m_line = "           " + tagged_string[i: i + 80] 
             
             elif side == '<' and darkside == '>': 
-                p_line = "%-9d  %s" % (base1 - i, target_sequence[i: i + 80])
+                p_line = "{}  {}".foramt(base1 - i, target_sequence[i: i + 80])
                 m_line = "           " + tagged_string[i: i + 80] 
 
 
         else: 
-            p_line = "%-9d  %s" % (base1 + i, target_sequence[i: i + 80])
+            p_line = "{:9}  {}".format(base1 + i, target_sequence[i: i + 80])
             m_line = "           " + tagged_string[i: i + 80]
 
         x_offset = 40
@@ -1243,7 +1245,7 @@ def pretty_print_mappings( target_sequence, tagged_string, primer_strings, base1
     for i in range(0, len(target_sequence), 80):
 
 
-        lines.append("%-9d  %s" % ( base1+ i, target_sequence[i: i+80]))
+        lines.append("{}  {}".format( base1+ i, target_sequence[i: i+80]))
         lines.append("           " + tagged_string[i: i+80])
 
         for primer_string in primer_strings:
@@ -1295,7 +1297,7 @@ def pretty_print_primer_data(primer3_results, passed_primers ):
         name = re.sub(r'PRIMER_', '', name)
         name = re.sub(r'_SEQUENCE', '', name)
 
-        lines.append( "%-10s %.2f  %.2f  %-25s %s" % (name, 
+        lines.append( "{} {}  {}  {} {}".format(name, 
                                                      float(primer3_results[ "PRIMER_" + name + "_GC_PERCENT"]), 
                                                      float(primer3_results[ "PRIMER_" + name + "_TM"]),
                                                      primer3_results[ "PRIMER_" + name + "_SEQUENCE"], 
@@ -1432,7 +1434,7 @@ def main():
     c.save()
 
     for filename in TMP_FILES:
-        print ("deleting tmp file: %s " % filename)
+        print ("deleting tmp file: {}" .format(filename))
         os.remove(filename)
 
 
