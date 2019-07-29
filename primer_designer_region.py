@@ -1431,7 +1431,7 @@ def main():
     c.save()
 
     for filename in TMP_FILES:
-        print ("deleting tmp file: {}" .format(filename))
+        print ("deleting tmp file: {}".format(filename))
         os.remove(filename)
 
 
