@@ -40,9 +40,6 @@ Example:
 
 *** 
 
-## To do
-1.Show in report if primers were not found for that particular run 
-2.Prevent the script from choosing the best primer near a poly-region 
 
 ## Description 
 For a detailed description of how to run the script and what has been done for fusion genes please read this [Confluence page](https://cuhbioinformatics.atlassian.net/wiki/spaces/BT/pages/481099798/Running+PrimerDesigner+for+fusion+genes)
