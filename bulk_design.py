@@ -4,13 +4,10 @@
 # 
 # 
 # Kim Brugger (11 Jul 2016), contact: kim@brugger.dk
+# Nikita Povarnitsyn (30 Jul 2019) 
 
 import sys
-import pprint
-pp = pprint.PrettyPrinter(indent=4)
-
 import os
-import sys
 import re
 import string
 import random
@@ -104,5 +101,5 @@ if __name__ == '__main__':
     os.chdir( ".." )
     system_call( "zip -j {} {}/*pdf".format( outfile, working_dir ))
 
-    print ("SUCCESS\nOutput file: {}".format(outfile))
+    print("SUCCESS\nOutput file: {}".format(outfile))
     
