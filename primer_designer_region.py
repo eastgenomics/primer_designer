@@ -1386,15 +1386,10 @@ def pretty_primer_data(
         name = re.sub(r'PRIMER_', '', name)
         name = re.sub(r'_SEQUENCE', '', name)
 
-        lines.append("\t".join([name, primer3_results["PRIMER_" +
-                                                      name +
-                                                      "_GC_PERCENT"], primer3_results["PRIMER_" +
-                                                                                      name +
-                                                                                      "_TM"], primer3_results["PRIMER_" +
-                                                                                                              name +
-                                                                                                              "_SEQUENCE"], passed_primers["PRIMER_" +
-                                                                                                                                           name +
-                                                                                                                                           "_SEQUENCE"]['MAPPING_SUMMARY']]))
+        lines.append("\t".join([name, primer3_results["PRIMER_" +name +"_GC_PERCENT"], 
+                                                    primer3_results["PRIMER_" +name +"_TM"], 
+                                                    primer3_results["PRIMER_" +name +"_SEQUENCE"], 
+                                                    passed_primers["PRIMER_" +name +"_SEQUENCE"]['MAPPING_SUMMARY']]))
 
     lines.append("\n")
     lines.append("Consensus sequence:\n")
