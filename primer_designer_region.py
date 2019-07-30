@@ -53,8 +53,8 @@ colours = [[255, 0, 0],  # red
 
 
 def verbose_print(msg, level):
-    if (level <= VERBOSE):
-        print msg
+    if level <= VERBOSE:
+        print(msg)
 
 
 def get_and_parse_arguments():
@@ -101,7 +101,7 @@ def get_and_parse_arguments():
         DBSNP = '/mnt/storage/data/refs/homo_sapiens/GRCh38/dbsnp_150_common.tab.gz'
 
     else:
-        print "Please select a reference genome to use"
+        print("Please select a reference genome to use")
         parser.parse_args('-h')
 
     return(args)

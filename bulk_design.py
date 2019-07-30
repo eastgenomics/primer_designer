@@ -14,34 +14,36 @@ import sys
 import re
 import string
 import random
-#import pipeliners as pipe
-
 import subprocess
+
+
+
+
 def system_call( cmd ):
 
     try:
         subprocess.check_call(cmd, shell=True)
 
     except subprocess.CalledProcessError as scall:
-        print "System call '%s' failed. Exit code: %s Error output: %s" %( cmd,  scall.returncode, scall.output)
+        print("System call '{}' failed. Exit code: {} Error output: {}".format( cmd,  scall.returncode, scall.output))
         exit()
 
 
 
 # Define system call
 
-if ( len(sys.argv ) == 1 ):
-	print "USAGE: bulk_design.py input-file [working dir]"
-	print "input-file one tab seperated output-name, region and reference (grch37 or grch38) of interest pr line"
+if len(sys.argv ) == 1:
+	print("USAGE: bulk_design.py input-file [working dir]")
+	print("input-file one tab seperated output-name, region and reference (grch37 or grch38) of interest pr line")
 	exit()
 
 infile = sys.argv[1]
-if ( infile.find(".txt") == -1):
-	print "Infile '%s' does not look like a txt file" % infile
+if infile.find(".txt") == -1:
+	print("Infile '{}' does not look like a txt file".format(infile))
 	exit()
 
 
-if ( len(sys.argv ) == 3 ):
+if len(sys.argv ) == 3:
     os.chdir( sys.argv[ 2 ])
 
 
@@ -84,25 +86,23 @@ if __name__ == '__main__':
 	
 	for line in plist:
 
-            print line
-
-
+            print(line)
             line = line.strip("\n")
-            if ( line == '' ):
+            if line == '':
                 continue 
 
-            (testname, region, reference) = re.split(r"[\t ]+", line)
+            testname, region, reference = re.split(r"[\t ]+", line)
 
             reference = reference.lower()
 
-            (chrom, npos) = region.split(":")
+            chrom, npos = region.split(":")
             cmd = "/mnt/storage/apps/software/primer_designer/1.1/primer_designer_region.py -c {} -p {} -o {} --{}".format(chrom, npos, testname, reference)
-            print cmd 
+            print(cmd) 
             system_call(cmd )
 
 
     os.chdir( ".." )
     system_call( "zip -j {} {}/*pdf".format( outfile, working_dir ))
 
-    print "SUCCESS\nOutput file: %s" % outfile
+    print ("SUCCESS\nOutput file: {}".format(outfile))
     
