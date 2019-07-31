@@ -113,7 +113,10 @@ def fetch_region(chrom, start, end):
     """
     verbose_print("fetch_region", 2)
     cmd = "{} faidx {}  {}:{}-{} ".format(SAMTOOLS,
-                                          REFERENCE, chrom, start, end)
+                                          REFERENCE,
+                                          chrom,
+                                          start,
+                                          end)
     args = shlex.split(cmd)
     p = subprocess.Popen(args, stdout=subprocess.PIPE)
 
@@ -165,13 +168,15 @@ def fetch_fusion_seqs(coord_dict):
 
         if region_dict['SIDE'] == "<":
             coord_dict[regionid]['SEQ'] = fetch_region(
-                region_dict['CHR'], int(
-                    region_dict['POS']), int(
-                    region_dict['POS']) + FLANK)
+                region_dict['CHR'],
+                int(region_dict['POS']),
+                int(region_dict['POS']) + FLANK)
 
         elif region_dict['SIDE'] == ">":
-            coord_dict[regionid]['SEQ'] = fetch_region(region_dict['CHR'], int(
-                region_dict['POS']) - FLANK, int(region_dict['POS']))
+            coord_dict[regionid]['SEQ'] = fetch_region(
+                region_dict['CHR'],
+                int(region_dict['POS']) - FLANK,
+                int(region_dict['POS']))
 
         else:
             print(
@@ -212,8 +217,7 @@ def markup_sequence(flank, sequence, FUSION=False,
                     if x in range(1, 1 + TARGET_LEAD):
                         tags[x] = '-'
 
-                sequence_list[TARGET_LEAD -
-                              1] = sequence_list[TARGET_LEAD - 1] + '] '
+                sequence_list[TARGET_LEAD -1] = sequence_list[TARGET_LEAD - 1] + '] '
 
             if side == ">":
 
@@ -227,8 +231,7 @@ def markup_sequence(flank, sequence, FUSION=False,
                     if x in range(len(tags) - TARGET_LEAD, len(tags) - 1):
                         tags[x] = '-'
 
-                sequence_list[len(
-                    tags) - TARGET_LEAD] = sequence_list[len(tags) - TARGET_LEAD] + ' ['
+                sequence_list[len(tags) - TARGET_LEAD] = sequence_list[len(tags) - TARGET_LEAD] + ' ['
 
             dbSNPs = fetch_known_SNPs(DBSNP, chrom, startpos, endpos)
             tags = markup_repeats(tags, sequence['SEQ'])
@@ -258,16 +261,22 @@ def markup_sequence(flank, sequence, FUSION=False,
         # base is tagged as the target.
         sequence_list[flank - TARGET_LEAD] = ' [' + \
             sequence[flank - TARGET_LEAD]
-        sequence_list[(- flank + TARGET_LEAD) -
-                      1] = sequence_list[(- flank + TARGET_LEAD) - 1] + '] '
+        sequence_list[(- flank + TARGET_LEAD) - 1] = sequence_list[(- flank + TARGET_LEAD) - 1] + '] '
 
         dbSNPs = fetch_known_SNPs(
-            DBSNP, chrom, startpos - flank, endpos + flank)
+            DBSNP,
+            chrom,
+            startpos - flank,
+            endpos + flank)
 
         tags = markup_repeats(tags, sequence)
 
         sequence_list, tagged_string = markup_SNPs(
-            dbSNPs, sequence_list, tags, startpos, endpos)
+            dbSNPs,
+            sequence_list,
+            tags,
+            startpos,
+            endpos)
 
     return (sequence_list, tagged_string)
 
@@ -281,7 +290,11 @@ def markup_repeats(tags, sequence):
     for matchNum, match in enumerate(matches, start=1):
 
         print("Match {matchNum} was found at {start}-{end}: {match}".format(
-            matchNum=matchNum, start=match.start(), end=match.end(), match=match.group()))
+            matchNum=matchNum,
+            start=match.start(),
+            end=match.end(),
+            match=match.group()))
+
         match_len = len(match.group())
 
         for x in range(match.start(), match.end()):
@@ -354,9 +367,8 @@ def markup_SNPs(dbSNPs, sequence_list, tags, startpos,
                 break
 
             # If already masked skip masking it again.
-            if re.search('<',
-                         sequence_list[mask_pos + i]) or re.search(r'\[',
-                                                                   sequence_list[mask_pos + i]):
+            if re.search('<',sequence_list[mask_pos + i]) or
+                            re.search(r'\[',sequence_list[mask_pos + i]):
                 continue
 
             sequence_list[mask_pos + i] = ' <' + \
@@ -469,9 +481,7 @@ def run_primer3(seq_id, seq, primer3_file=""):
 
     cmd = "{} < {}".format(PRIMER3, primer3_file)
 
-    process = subprocess.Popen(cmd,
-                               stdout=subprocess.PIPE,
-                               shell=True)
+    process = subprocess.Popen(cmd, stdout = subprocess.PIPE, shell = True)
 
     output = process.communicate()
     output_dict = dict()
@@ -748,8 +758,7 @@ def check_primers(region_id, target_region, primer3_dict,
                 chromo = dicts['CHR']
                 startpos = int(dicts['POS'])
                 endpos = int(dicts['POS']) + FLANK
-                right_dict = primer_report(
-                    chromo, startpos, endpos, right_dict)
+                right_dict = primer_report(chromo, startpos, endpos, right_dict)
 
         # merge two dictionaries back into one
         mydict = merge_dicts(left_dict, right_dict)
@@ -870,7 +879,9 @@ def make_primer_mapped_strings(target_sequence, passed_primer_seqs):
         while(1):
 
             if check_if_primer_clash(
-                    mapped_strings[scan_index], pos, pos + len(primer)):
+                    mapped_strings[scan_index],
+                    pos,
+                    pos + len(primer)):
                 scan_index += 1
 
                 if len(mapped_strings) >= scan_index:
@@ -1038,8 +1049,8 @@ def pretty_pdf_primer_data(
                      "{:10} {:.2f}  {:.2f}  {:25}             {}            ".format("",
                                                                                      float(primer3_results["PRIMER_" + name + "_GC_PERCENT"]),
                                                                                      float(primer3_results["PRIMER_" + name + "_TM"]),
-                                                                                     primer3_results["PRIMER_" + name + "_SEQUENCE"],
-                                                                                     passed_primers["PRIMER_" + name + "_SEQUENCE"]['MAPPING_SUMMARY'],
+                                                                                     primer3_results["PRIMER_" +name + "_SEQUENCE"],
+                                                                                     passed_primers["PRIMER_" + name +"_SEQUENCE"]['MAPPING_SUMMARY'],
                                                                                      ))
 
         primer_nr = re.sub(r'.*_(\d)', r'\1', name)
@@ -1060,8 +1071,7 @@ def pretty_pdf_primer_data(
     return (y_offset)
 
 
-def pretty_pdf_fusion_mappings(
-        top_offset, c, coord_dict, passed_primer_seqs, FUSION=False):
+def pretty_pdf_fusion_mappings(top_offset, c, coord_dict, passed_primer_seqs, FUSION=False):
     """Function to interogate the nested dictionary. Firstly the first sequence with the
     position of interest at the end is printed. It is followed by the other one. DARK_SIDE
     varible allows to track the change of the side of the flipped sequence. If sequence of interest
@@ -1217,7 +1227,7 @@ def pretty_pdf_mappings(
                 m_line = "           " + tagged_string[i: i + 80]
 
         else:
-            p_line = "{:9}  {}".format(base1 + i, target_sequence[i: i + 80])
+            p_line = "{}  {}".format(base1 + i, target_sequence[i: i + 80])
             m_line = "           " + tagged_string[i: i + 80]
 
         x_offset = 40
@@ -1386,10 +1396,11 @@ def pretty_primer_data(
         name = re.sub(r'PRIMER_', '', name)
         name = re.sub(r'_SEQUENCE', '', name)
 
-        lines.append("\t".join([name, primer3_results["PRIMER_" +name +"_GC_PERCENT"], 
-                                                    primer3_results["PRIMER_" +name +"_TM"], 
-                                                    primer3_results["PRIMER_" +name +"_SEQUENCE"], 
-                                                    passed_primers["PRIMER_" +name +"_SEQUENCE"]['MAPPING_SUMMARY']]))
+        lines.append("\t".join([name, primer3_results["PRIMER_" + name + "_GC_PERCENT"],
+                                primer3_results["PRIMER_" + name + "_TM"],
+                                primer3_results["PRIMER_" +
+                                                name + "_SEQUENCE"],
+                                passed_primers["PRIMER_" + name + "_SEQUENCE"]['MAPPING_SUMMARY']]))
 
     lines.append("\n")
     lines.append("Consensus sequence:\n")
@@ -1398,8 +1409,7 @@ def pretty_primer_data(
     fh.close()
 
 
-def pretty_print_mappings(
-        target_sequence, tagged_string, primer_strings, base1):
+def pretty_print_mappings(target_sequence, tagged_string, primer_strings, base1):
     """used to print out the information of the primers in the terminal"""
 
     lines = []
@@ -1464,7 +1474,7 @@ def pretty_print_primer_data(primer3_results, passed_primers):
         lines.append("{} {}  {}  {} {}".format(name,
                                                float(primer3_results["PRIMER_" + name + "_GC_PERCENT"]),
                                                float(primer3_results["PRIMER_" + name + "_TM"]),
-                                               primer3_results["PRIMER_" + name + "_SEQUENCE"],
+                                               primer3_results["PRIMER_" +name + "_SEQUENCE"],
                                                passed_primers["PRIMER_" + name + "_SEQUENCE"]['MAPPING_SUMMARY']))
 
     lines.append("")
