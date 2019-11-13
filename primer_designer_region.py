@@ -367,8 +367,7 @@ def markup_SNPs(dbSNPs, sequence_list, tags, startpos,
                 break
 
             # If already masked skip masking it again.
-            if re.search('<',sequence_list[mask_pos + i]) or
-                            re.search(r'\[',sequence_list[mask_pos + i]):
+            if re.search('<',sequence_list[mask_pos + i]) or re.search(r'\[',sequence_list[mask_pos + i]):
                 continue
 
             sequence_list[mask_pos + i] = ' <' + \
@@ -1209,21 +1208,21 @@ def pretty_pdf_mappings(
         if FUSION:
 
             if side == '>' and darkside == '>':
-                p_line = "{}  {}".foramt(base1 + i, target_sequence[i: i + 80])
+                p_line = "{}  {}".format(base1 + i, target_sequence[i: i + 80])
                 m_line = "           " + tagged_string[i: i + 80]
 
             elif side == '<' and darkside == '<':
-                p_line = "{}  {}".foramt(
+                p_line = "{}  {}".format(
                     base1 + i - len(spaces), target_sequence[i: i + 80])
                 m_line = "           " + tagged_string[i: i + 80]
 
             elif side == '>' and darkside == '<':
-                p_line = "{}  {}".foramt(
+                p_line = "{}  {}".format(
                     base1 - i + len(spaces), target_sequence[i: i + 80])
                 m_line = "           " + tagged_string[i: i + 80]
 
             elif side == '<' and darkside == '>':
-                p_line = "{}  {}".foramt(base1 - i, target_sequence[i: i + 80])
+                p_line = "{}  {}".format(base1 - i, target_sequence[i: i + 80])
                 m_line = "           " + tagged_string[i: i + 80]
 
         else:
