@@ -1588,7 +1588,8 @@ def main():
     filename = re.sub("[<>:]", "_", region_id)
 
     if args.output:
-        filename = args.output + "_" + filename
+        filename = args.output 
+        # + "_" + filename
 
     if args.text_output:
         pretty_primer_data(
