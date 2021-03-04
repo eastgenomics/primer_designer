@@ -96,7 +96,7 @@ if __name__ == '__main__':
             reference = reference.lower()
 
             (chrom, npos) = region.split(":")
-            cmd = "/mnt/storage/apps/software/primer_designer/1.1/primer_designer_region.py -c {} -p {} -o {} --{}".format(chrom, npos, testname, reference)
+            cmd = "/software/primer_designer/primer_designer_region.py -c {} -p {} -o {} --{}".format(chrom, npos, testname, reference)
             print cmd 
             system_call(cmd )
 

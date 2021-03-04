@@ -33,12 +33,12 @@ colours = [[255,   0,   0], # red
            [255, 255,   0]] # Yellow, crap!
 
 # External tools we use 
-SAMTOOLS   = '/mnt/storage/apps/software/samtools/1.5/bin/samtools ';
+SAMTOOLS   = '/software/samtools/1.5/bin/samtools ';
 REFERENCE  = None
 DBSNP      = None
-TABIX      = '/mnt/storage/apps/software/samtools/1.5/bin/tabix '
-SMALT      = '/mnt/storage/apps/software/smalt/0.7.6/bin/smalt '
-PRIMER3    = '/mnt/storage/apps/software/primer3_core/2.3.7/src/primer3_core '
+TABIX      = '/software/samtools/1.5/bin/tabix '
+SMALT      = '/software/smalt/0.7.6/bin/smalt '
+PRIMER3    = '/software/primer3_core/2.3.7/src/primer3_core '
 
 # default parameters, can be overridden by the user (perhaps)
 TARGET_LEAD        = 50
@@ -236,7 +236,7 @@ PRIMER_PICK_RIGHT_PRIMER=1
 PRIMER_INTERNAL_MAX_TM=63.0
 PRIMER_INTERNAL_WT_GC_PERCENT_LT=0.0
 PRIMER_INTERNAL_WT_TM_LT=1.0
-PRIMER_THERMODYNAMIC_PARAMETERS_PATH=/mnt/storage/apps/software/primer3_core/2.3.7/src/primer3_config/
+PRIMER_THERMODYNAMIC_PARAMETERS_PATH=/software/primer3_core/2.3.7/src/primer3_config/
 ='''
 
     details = {
@@ -573,12 +573,11 @@ def get_and_parse_arguments():
 
 
     if ( args.grch37 or args.hg19):
-        REFERENCE = '/mnt/scratch/refs/human_1kg/human_g1k_v37.fasta'
-	#REFERENCE = '/mnt/scratch/refs/homo_sapiens/GRCh37/Homo_sapiens_assembly37.fasta'
-        DBSNP     = '/mnt/scratch/refs/homo_sapiens/GRCh37/annots-rsIDs-dbSNPv144.20150605.tab.gz'
+        REFERENCE = '/refs/human_1kg/human_g1k_v37.fasta'
+        DBSNP     = '/refs/homo_sapiens/GRCh37/annots-rsIDs-dbSNPv144.20150605.tab.gz'
     elif ( args.grch38 ):
-        REFERENCE = '/mnt/scratch/refs/homo_sapiens/GRCh38/Homo_sapiens_assembly38.fasta'
-        DBSNP     = '/mnt/scratch/refs/homo_sapiens/GRCh37/dbsnp_150_common.vcf.gz'
+        REFERENCE = '/refs/homo_sapiens/GRCh38/Homo_sapiens_assembly38.fasta'
+        DBSNP     = '/refs/homo_sapiens/GRCh37/dbsnp_150_common.vcf.gz'
     else:
         print "Please select a reference genome to use"
         parser.parse_args('-h')
