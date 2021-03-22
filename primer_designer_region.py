@@ -1083,7 +1083,7 @@ class Report():
 
         c.drawString(
             40, y_offset,
-            "ID         %GC    TM     Primer sequence                       Mapping(s)")
+            f"ID{' ' * 9}%GC{' ' * 4}TM{' ' * 5}Primer sequence{' ' * 23}Mapping(s)")
         y_offset -= 8
         c.line(40, y_offset, width - 40, y_offset + 2)
         y_offset -= 8
@@ -1127,12 +1127,20 @@ class Report():
         return y_offset
 
 
-    def pretty_pdf_fusion_mappings(self, top_offset, c, coord_dict, passed_primer_seqs, FUSION=False):
-        """Function to interogate the nested dictionary. Firstly the first sequence with the
-        position of interest at the end is printed. It is followed by the other one. DARK_SIDE
-        varible allows to track the change of the side of the flipped sequence. If sequence of interest
-        was after given position and then reverse-complemented the signs would be < > for side and dark_side
-        respectively.
+    def pretty_pdf_fusion_mappings(
+        self, top_offset, c, coord_dict, passed_primer_seqs, FUSION=False
+    ):
+        """
+        Function to interogate the nested dictionary. Firstly the first
+        sequence with the position of interest at the end is printed. It
+        is followed by the other one. DARK_SIDE varible allows to track
+        the change of the side of the flipped sequence. If sequence of
+        interest was after given position and then reverse-complemented
+        the signs would be < > for side and dark_side respectively.
+        
+        Args:
+
+        Returns:
 
         """
 
@@ -1510,7 +1518,10 @@ class Report():
                     chr, startpos))
         else:
             lines.append(
-                " Primer design report for chr: {} range: {}-{}".format(chr, startpos, endpos))
+                " Primer design report for chr: {} range: {}-{}".format(
+                    chr, startpos, endpos
+                )
+            )
 
         lines.append("_-=-" * 15 + "_")
         lines.append("\n")
@@ -1528,11 +1539,12 @@ class Report():
             name = re.sub(r'PRIMER_', '', name)
             name = re.sub(r'_SEQUENCE', '', name)
 
-            lines.append("{} {}  {}  {} {}".format(name,
-                                                float(primer3_results["PRIMER_" + name + "_GC_PERCENT"]),
-                                                float(primer3_results["PRIMER_" + name + "_TM"]),
-                                                primer3_results["PRIMER_" +name + "_SEQUENCE"],
-                                                passed_primers["PRIMER_" + name + "_SEQUENCE"]['MAPPING_SUMMARY']))
+            lines.append("{} {}  {}  {} {}".format(
+                name,
+                float(primer3_results["PRIMER_" + name + "_GC_PERCENT"]),
+                float(primer3_results["PRIMER_" + name + "_TM"]),
+                primer3_results["PRIMER_" +name + "_SEQUENCE"],
+                passed_primers["PRIMER_" + name + "_SEQUENCE"]['MAPPING_SUMMARY']))
 
         lines.append("")
         lines.append("-=" * 46)
