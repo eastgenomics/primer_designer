@@ -50,7 +50,6 @@ colours = [[255, 0, 0],  # red
 class Fusion():
     """Fusion primer designing related functions"""
 
-
     def split_input(self, coords):
         """
         Creates nested dict of dicts to store chrom, pos, and the sequence
@@ -82,7 +81,6 @@ class Fusion():
                 'STRAND': instance[3]}
 
         return coord_dicts
-
 
 
     def fetch_seqs(self, coord_dict):
@@ -117,9 +115,68 @@ class Fusion():
         return coord_dict
 
 
+    def flip_fusion_seq(self, seqs_dict):
+        """
+        Flips a sequence in case two same sides relative to breakpoint
+        are added
+
+        Args:
+            -
+        Returns:
+            -
+        """
+        complement = {
+            'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A',
+            '<': '>', '>': '<', '[': ']', ']': '['
+        }
+
+        # DARK_SIDE is requrired to store original SIDE value, which is
+        # used in pick_best_primer() as well as printing coordinates in
+        # the right order
+
+        for i in range(0, len(seqs_dict)):
+
+            if seqs_dict[i]['SIDE'] == ">" and seqs_dict[i]['STRAND'] == "1":
+                seqs_dict[i]['DARK_SIDE'] = ">"
+
+            elif seqs_dict[i]['SIDE'] == "<" and seqs_dict[i]['STRAND'] == "1":
+                seqs_dict[i]['DARK_SIDE'] = "<"
+
+            elif seqs_dict[i]['SIDE'] == ">" and seqs_dict[i]['STRAND'] == "-1":
+                seqs_dict[i]['SEQ'] = "".join(complement.get(
+                    base, base) for base in seqs_dict[i]['SEQ'][::-1])
+                seqs_dict[i]['MSEQ'] = "".join(complement.get(
+                    base, base) for base in seqs_dict[i]['MSEQ'][::-1])
+                seqs_dict[i]['TSEQ'] = seqs_dict[i]['TSEQ'][::-1]
+                seqs_dict[i]['DARK_SIDE'] = "<"
+
+            elif seqs_dict[i]['SIDE'] == "<" and seqs_dict[i]['STRAND'] == "-1":
+                seqs_dict[i]['SEQ'] = "".join(complement.get(
+                    base, base) for base in seqs_dict[i]['SEQ'][::-1])
+                seqs_dict[i]['MSEQ'] = "".join(complement.get(
+                    base, base) for base in seqs_dict[i]['MSEQ'][::-1])
+                seqs_dict[i]['TSEQ'] = seqs_dict[i]['TSEQ'][::-1]
+                seqs_dict[i]['DARK_SIDE'] = ">"
+
+        if seqs_dict[0]['DARK_SIDE'] == ">" and seqs_dict[1]['DARK_SIDE'] == "<":
+            target_sequence = ''.join([seqs_dict[0]['SEQ'], seqs_dict[1]['SEQ']])
+            marked_sequence = ''.join([seqs_dict[0]['MSEQ'], seqs_dict[1]['MSEQ']])
+            tagged_string = ''.join([seqs_dict[0]['TSEQ'], seqs_dict[1]['TSEQ']])
+
+        elif seqs_dict[0]['DARK_SIDE'] == "<" and seqs_dict[1]['DARK_SIDE'] == ">":
+            target_sequence = ''.join([seqs_dict[1]['SEQ'], seqs_dict[0]['SEQ']])
+            marked_sequence = ''.join([seqs_dict[1]['MSEQ'], seqs_dict[0]['MSEQ']])
+            tagged_string = ''.join([seqs_dict[1]['TSEQ'], seqs_dict[0]['TSEQ']])
+
+        else:
+            print("This fusion is not possible")
+            sys.exit()
+
+        return target_sequence, tagged_string, marked_sequence
+
+
 class Sequence():
     """Sequence related functions"""
-
 
     @staticmethod
     def fetch_region(chrom, start, end):
@@ -155,7 +212,8 @@ class Sequence():
 
     def markup_sequence(
         self, flank, sequence, FUSION=False, chrom=None, startpos=None,
-        endpos=None):
+        endpos=None
+    ):
         """
         Marks the target sequence with "-*-", creates a string of
         characters representing the SNPs, target lead (50 bases up and 
@@ -362,6 +420,8 @@ class Sequence():
         return var
 
 
+
+
 def parse_args():
     parser = argparse.ArgumentParser()
 
@@ -414,7 +474,6 @@ def main():
     fusion = Fusion()
     sequence = Sequence()
 
-
     chrom = args.chr
 
     if args.range:
@@ -448,12 +507,12 @@ def main():
             dicts['TSEQ'] = tagged_seq
             dicts['DARK_SIDE'] = ''
 
-        target_sequence, tagged_string, marked_sequence = flip_fusion_seq(seqs)
+        target_sequence, tagged_string, marked_sequence = fusion.flip_fusion_seq(seqs)
         region_id = fusion
     else:
         # Normal run: when either a position or range is passed
         target_sequence = sequence.fetch_region(chrom, startpos - FLANK, endpos + FLANK)
-        marked_sequence, tagged_string = markup_sequence(
+        marked_sequence, tagged_string = sequence.markup_sequence(
             FLANK, target_sequence, FUSION, chrom, startpos, endpos
         )
 
