@@ -6,6 +6,8 @@ Primer Designer is a program to design primers for the human reference genome.
 
 ## Usage 
 
+`config.py` must be first populated with paths to required tools and files.
+
 Example:
 
 ```bash
@@ -50,7 +52,8 @@ For a detailed description of how to run the script and what has been done for f
 
 Current maintainers: 
 
-* Nikita Povarnitsyn  
+* ~~Nikita Povarnitsyn~~ 
+* Jethro Rainford (eastgenomics)
 
 ## Contributing
 Contributions are more than welcome. 
