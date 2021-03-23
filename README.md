@@ -22,11 +22,9 @@ Example:
     -p - Specifies position of a base around which primers need to be designed  
     -r - Specifies range of nucleotides around which primers need to be designed
     -b - Specifies breakpoints locations to design primers for fusion genes; requires the input to be in this format:
-         chr1:pos:side:strand_chr2:pos:side:strand, where side is after or before the breakpoint. The position is
-         included in all of the calculations. 
+         chr1:pos:side:strand_chr2:pos:side:strand, where side is after (a) or before (b) the breakpoint. The position is included in all of the calculations. 
 
-
---hg19 | grch37 | grch38
+--grch37 | --grch38
   (required) Specifies the reference genome. 
 
 -o 
@@ -36,7 +34,7 @@ Example:
   (optional) A flag to output the report in .txt format 
 
 -f 
-  (optional) A flag to change the FLANK region used to design primers around. It is the numebr of bases before and after the indicated position. 
+  (optional) A flag to change the FLANK region used to design primers around. It is the number of bases before and after the indicated position. 
 
 *** 
 
