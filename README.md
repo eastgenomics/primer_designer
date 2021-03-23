@@ -1,6 +1,10 @@
 # Primer Designer 
 
-Primer Designer is a program to design primers for the human reference genome.
+Primer Designer is a tool for designing primers for the human reference genome.
+
+It utilises [primer3][primer3-url] and [smalt][smalt-url] to generate primers for given region(s), and outputs a PDF report with the best matched primers.
+
+Primers may be designed for single positions, ranges of regions and also breakpoints for fusion events. All primers are marked up with known SNPs for the given reference from dbSNP and also highlights repeat regions.
 
 ***
 
@@ -42,7 +46,7 @@ Example:
 
 
 ## Description 
-For a detailed description of how to run the script and what has been done for fusion genes please read this [Confluence page](https://cuhbioinformatics.atlassian.net/wiki/spaces/BT/pages/481099798/Running+PrimerDesigner+for+fusion+genes)
+For a detailed description of how to run the script and what has been done for fusion genes please read this [Confluence page][fusion-page-url]
 
 ## Authors And Acknowledgement 
 
@@ -56,4 +60,8 @@ Current maintainers:
 * Jethro Rainford (eastgenomics)
 
 ## Contributing
-Contributions are more than welcome. 
+Contributions are more than welcome.
+
+[primer3-url]: https://www.bioinformatics.nl/cgi-bin/primer3plus/primer3plusHelp.cgi
+[smalt-url]: https://www.sanger.ac.uk/tool/smalt-0/
+[fusion-page-url]: https://cuhbioinformatics.atlassian.net/wiki/spaces/BT/pages/481099798/Running+PrimerDesigner+for+fusion+genes
