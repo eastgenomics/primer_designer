@@ -22,11 +22,9 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 
 # paths to req. tools, defined in config
-from config import SAMTOOLS, TABIX, SMALT, PRIMER3, FONT, THERMO_PARAMS,\
+from config import SAMTOOLS, TABIX, SMALT, PRIMER3, THERMO_PARAMS, FONT, \
     REF_37, REF_38, DBSNP_37, DBSNP_38
 
-# for config
-THERMO_PARAMS = "/mnt/storage/apps/software/primer3_core/2.3.7/src/primer3_config/"
 
 # Default parameters
 FLANK = 500
@@ -1033,7 +1031,8 @@ class Primer3():
 
 
 class Report():
-    """Functions to generate PDF report"""
+    """Functions to generate PDF report. Some really weird f strings for
+    adding appropriate padding for displaying report."""
 
     def pretty_pdf_primer_data(
             self, c, y_offset, primer3_results, passed_primers, width,
@@ -1047,21 +1046,28 @@ class Report():
         Returns:
             -
         """
-        verbose_print("pretty_pdf_primer_data", 2)
         c.line(40, y_offset, width - 40, y_offset + 2)
         y_offset -= 8
 
-        if FUSION:
-            c.drawString(
-                40,
-                y_offset,
-                "Primer design report for a fusion between chr: {} position: {} and chr: {} position: {} ".format(
-                    coord_dict[0]['CHR'],
-                    coord_dict[0]['POS'],
-                    coord_dict[1]['CHR'],
-                    coord_dict[1]['POS']))
+        # old long str kept for reference
 
+        # "Primer design report for a fusion between chr: {} position: {} and chr: {} position: {} ".format(
+        # coord_dict[0]['CHR'], coord_dict[0]['POS'],
+        # coord_dict[1]['CHR'], coord_dict[1]['POS'])
+
+        if FUSION:
+            # fusion header
+            c.drawString(
+                40, y_offset,
+                (
+                    f"Primer design report for a fusion between chr: "
+                    f"{coord_dict[0]['CHR']} position: {coord_dict[0]['POS']} "
+                    f" and chr: {coord_dict[1]['CHR']} position: "
+                    f"{coord_dict[1]['POS']} "
+                )
+            )
         else:
+            # normal primer design header
             if startpos == endpos:
                 c.drawString(
                     40,
@@ -1081,9 +1087,15 @@ class Report():
         c.line(40, y_offset, width - 40, y_offset + 2)
         y_offset -= 16
 
+        # weird spacing to align in report
         c.drawString(
             40, y_offset,
-            f"ID{' ' * 9}%GC{' ' * 4}TM{' ' * 5}Primer sequence{' ' * 23}Mapping(s)")
+            (
+                f"ID{' ' * 9}%GC{' ' * 4}TM{' ' * 5}Primer sequence{' ' * 23}"
+                "Mapping(s)"
+            )
+        )
+
         y_offset -= 8
         c.line(40, y_offset, width - 40, y_offset + 2)
         y_offset -= 8
@@ -1098,22 +1110,35 @@ class Report():
             if name == "RIGHT_0":
                 y_offset -= 8
 
-            picked_primer = ' '
+            # old messy one kept for reference
 
-            c.drawString(40,
-                        y_offset,
-                        "{:10} {:.2f}  {:.2f}  {:25}             {}            ".format("",
-                                                                                        float(primer3_results["PRIMER_" + name + "_GC_PERCENT"]),
-                                                                                        float(primer3_results["PRIMER_" + name + "_TM"]),
-                                                                                        primer3_results["PRIMER_" +name + "_SEQUENCE"],
-                                                                                        passed_primers["PRIMER_" + name +"_SEQUENCE"]['MAPPING_SUMMARY'],
-                                                                                        ))
+            # c.drawString(40,
+            #             y_offset,
+            #             "{:10} {:.2f}  {:.2f}  {:25}             {}            ".format("",
+            #                                                                             float(primer3_results["PRIMER_" + name + "_GC_PERCENT"]),
+            #                                                                             float(primer3_results["PRIMER_" + name + "_TM"]),
+            #                                                                             primer3_results["PRIMER_" +name + "_SEQUENCE"],
+            #                                                                             passed_primers["PRIMER_" + name +"_SEQUENCE"]['MAPPING_SUMMARY'],
+            #                                                                             ))
+
+            # more weird spacing for report alignment, adds in primer details
+            c.drawString(
+                40, y_offset,
+                (
+                    f"{'':10} {float(primer3_results["PRIMER_" + name + "_GC_PERCENT"]):.2f}  "
+                    f"{float(primer3_results["PRIMER_" + name + "_TM"]):.2f}  "
+                    f"{primer3_results["PRIMER_" +name + "_SEQUENCE"]:25}{'':13}"
+                    f"{passed_primers["PRIMER_" + name +"_SEQUENCE"]['MAPPING_SUMMARY']}{'':12}"
+                )
+            )
+
 
             primer_nr = re.sub(r'.*_(\d)', r'\1', name)
 
-            c.setFillColorRGB(colours[int(primer_nr)][0],
-                            colours[int(primer_nr)][1],
-                            colours[int(primer_nr)][2])
+            c.setFillColorRGB(
+                colours[int(primer_nr)][0], colours[int(primer_nr)][1],
+                colours[int(primer_nr)][2]
+            )
 
             c.drawString(40, y_offset, name)
             c.setFillColorRGB(0, 0, 0)
@@ -1131,28 +1156,26 @@ class Report():
         self, top_offset, c, coord_dict, passed_primer_seqs, FUSION=False
     ):
         """
-        Function to interogate the nested dictionary. Firstly the first
-        sequence with the position of interest at the end is printed. It
-        is followed by the other one. DARK_SIDE varible allows to track
-        the change of the side of the flipped sequence. If sequence of
-        interest was after given position and then reverse-complemented
-        the signs would be < > for side and dark_side respectively.
-        
+        Function to interogate the nested dictionary.
+        The first sequence with the position of interest at the end is
+        printed. It is followed by the other one.
+        DARK_SIDE varible allows to track the change of the side of the
+        flipped sequence.
+        If sequence of interest was after given position and then
+        reverse-complemented the signs would be < > for side and
+        dark_side respectively.
+
         Args:
 
         Returns:
 
         """
-
-        verbose_print("pretty_pdf_fusion_mappings", 2)
         # spaces required to match the positions of two breakpoints when pdf is
         # created
         spaces = ' ' * ((FLANK + 1) % 80)
 
         if FUSION:
-
             if coord_dict[0]['TSEQ'][-1] == "*":
-
                 target_sequence = coord_dict[0]['SEQ']
                 tagged_string = coord_dict[0]['TSEQ']
 
@@ -1166,36 +1189,29 @@ class Report():
 
                 side = coord_dict[0]['DARK_SIDE']
                 darkside = coord_dict[0]['DARK_SIDE']
-                primer_strings, primer_colours = make_primer_mapped_strings(
+
+                primer_strings, primer_colours = self.make_primer_mapped_strings(
                     target_sequence, passed_primer_seqs)
-                top_offset = pretty_pdf_mappings(
-                    top_offset,
-                    target_sequence,
-                    tagged_string,
-                    primer_strings,
-                    primer_colours,
-                    base1,
-                    c,
-                    side,
-                    darkside)
+
+                top_offset = self.pretty_pdf_mappings(
+                    top_offset, target_sequence, tagged_string, primer_strings,
+                    primer_colours, base1, c, side, darkside
+                )
 
                 target_sequence = spaces + coord_dict[1]['SEQ']
                 tagged_string = spaces + coord_dict[1]['TSEQ']
                 base1 = int(coord_dict[1]['POS'])
                 side = coord_dict[1]['DARK_SIDE']
                 darkside = coord_dict[1]['DARK_SIDE']
-                primer_strings, primer_colours = make_primer_mapped_strings(
-                    target_sequence, passed_primer_seqs)
-                top_offset = pretty_pdf_mappings(
-                    top_offset,
-                    target_sequence,
-                    tagged_string,
-                    primer_strings,
-                    primer_colours,
-                    base1,
-                    c,
-                    side,
-                    darkside)
+
+                primer_strings, primer_colours = self.make_primer_mapped_strings(
+                    target_sequence, passed_primer_seqs
+                )
+
+                top_offset = self.pretty_pdf_mappings(
+                    top_offset, target_sequence, tagged_string, primer_strings,
+                    primer_colours, base1, c, side, darkside
+                )
 
             elif coord_dict[1]['TSEQ'][-1] == "*":
 
@@ -1214,56 +1230,44 @@ class Report():
 
                 side = coord_dict[1]['DARK_SIDE']
                 darkside = coord_dict[1]['DARK_SIDE']
-                primer_strings, primer_colours = make_primer_mapped_strings(
-                    target_sequence, passed_primer_seqs)
+
+                primer_strings, primer_colours = self.make_primer_mapped_strings(
+                    target_sequence, passed_primer_seqs
+                )
+
                 top_offset = pretty_pdf_mappings(
-                    top_offset,
-                    target_sequence,
-                    tagged_string,
-                    primer_strings,
-                    primer_colours,
-                    base1,
-                    c,
-                    side,
-                    darkside)
+                    top_offset, target_sequence, tagged_string, primer_strings,
+                    primer_colours, base1, c, side, darkside
+                )
 
                 target_sequence = spaces + coord_dict[0]['SEQ']
                 tagged_string = spaces + coord_dict[0]['TSEQ']
                 base1 = int(coord_dict[0]['POS'])
                 side = coord_dict[0]['DARK_SIDE']
                 darkside = coord_dict[0]['DARK_SIDE']
-                primer_strings, primer_colours = make_primer_mapped_strings(
-                    target_sequence, passed_primer_seqs)
-                top_offset = pretty_pdf_mappings(
-                    top_offset,
-                    target_sequence,
-                    tagged_string,
-                    primer_strings,
-                    primer_colours,
-                    base1,
-                    c,
-                    side,
-                    darkside)
 
-        return (top_offset)
+                primer_strings, primer_colours = self.make_primer_mapped_strings(
+                    target_sequence, passed_primer_seqs
+                )
+
+                top_offset = self.pretty_pdf_mappings(
+                    top_offset, target_sequence, tagged_string, primer_strings,
+                    primer_colours, base1, c, side, darkside
+                )
+
+        return top_offset
 
 
-    def pretty_pdf_mappings(
-            self,
-            top_offset,
-            target_sequence,
-            tagged_string,
-            primer_strings,
-            primer_colours,
-            base1,
-            c,
-            side=None,
-            darkside=None):
+    def pretty_pdf_mappings(self, top_offset, target_sequence, tagged_string,
+                            primer_strings, primer_colours, base1, c,
+                            side=None, darkside=None):
         """
         Outputs the mapping results into the .pdf file
-        """
 
-        verbose_print("pretty_pdf_mappings", 2)
+        Args:
+
+        Returns:
+        """
         spaces = ' ' * ((FLANK + 1) % 80)
 
         # The flip of one of the sequences defines how the numeration of
@@ -1340,9 +1344,11 @@ class Report():
 
                     if primer_colour[k] >= 0:
 
-                        c.setFillColorRGB(colours[primer_colour[k]][0],
-                                        colours[primer_colour[k]][1],
-                                        colours[primer_colour[k]][2])
+                        c.setFillColorRGB(
+                            colours[primer_colour[k]][0],
+                            colours[primer_colour[k]][1],
+                            colours[primer_colour[k]][2]
+                        )
 
                     c.drawString(x_offset, top_offset, primer_string[k])
                     x_offset += stringWidth(" ", 'mono', 8)
@@ -1352,12 +1358,17 @@ class Report():
 
             top_offset -= 8
 
-        return (top_offset)
+        return top_offset
 
 
     def pretty_pdf_method(self, top_offset, args, c, seqs=None):
-        verbose_print("pretty_pdf_method", 3)
+        """
+        Function to do something to the pdf - not sure what...
 
+        Args:
+
+        Returns:
+        """
         lines = method_blurb(args, seqs)
 
         top_offset = 80
@@ -1367,7 +1378,7 @@ class Report():
             top_offset -= 8
 
 
-    def method_blurb(args, seqs=None):
+    def method_blurb(self, args, seqs=None):
 
         lines = []
 
@@ -1415,16 +1426,9 @@ class Report():
         return (lines)
 
 
-    def pretty_primer_data(
-            outfile,
-            primer3_results,
-            passed_primers,
-            chrom,
-            startpos,
-            endpos,
-            target_sequence=None,
-            FUSION=False,
-            coord_dict=None):
+    def pretty_primer_data(self, outfile, primer3_results, passed_primers,
+                           chrom, startpos, endpos, target_sequence=None,
+                           FUSION=False, coord_dict=None):
         """
         function to output the report in txt format. No primers would be
         displayed on the target sequence
@@ -1474,7 +1478,7 @@ class Report():
         fh.close()
 
 
-    def pretty_print_mappings(target_sequence, tagged_string, primer_strings, base1):
+    def pretty_print_mappings(self, target_sequence, tagged_string, primer_strings, base1):
         """used to print out the information of the primers in the terminal"""
 
         lines = []
@@ -1498,9 +1502,9 @@ class Report():
         return (lines)
 
 
-    def pretty_print_primer_data(primer3_results, passed_primers):
+    def pretty_print_primer_data(self, primer3_results, passed_primers):
         """
-        function which is never used.
+        function which is never used -- to remove?
         """
 
         lines = []
