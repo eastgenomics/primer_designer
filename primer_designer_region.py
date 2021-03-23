@@ -4,7 +4,7 @@ coordiantes using primer3 & smalt.
 
 Original: Kim Brugger (15 Sep 2015), contact: kim@brugger.dk
 Made better: Nikita Povarnitsyn (09 Apr 2019)
-Made even better: Jethro Rainford (22/03/2021)
+Made even better: Jethro Rainford (23 Mar 2021)
 '''
 import os
 import sys
@@ -49,7 +49,14 @@ colours = [[255, 0, 0],  # red
 
 
 class Fusion():
-    """Fusion primer designing related functions"""
+    """
+    Fusion primer designing related functions
+
+    - split_input(): creates dicts for given coords, used to add attributes
+    - fetch_seqs(): calls Sequence.fetch_region() to get sequence from ref
+    - flip_fusion_seq(): returns reverse complement where seq is on same 
+        strand either side of breakpoint
+    """
 
     def split_input(self, coords):
         """
@@ -67,8 +74,8 @@ class Fusion():
         for i, coordinate in enumerate(coordinates):
             instance = coordinate.split(":")
 
-            # replacing the a/b with symbols, cos i wrote the whole script with
-            # symbols and was lazy to replace them
+            # replacing the a/b with symbols, cos i wrote the whole
+            # script with symbols and was lazy to replace them
             if instance[2] == "a":
                 instance[2] = re.sub('a', '<', instance[2])
 
@@ -177,7 +184,15 @@ class Fusion():
 
 
 class Sequence():
-    """Sequence related functions"""
+    """
+    Sequence related functions
+
+    - fetch_region(): uses samtools to get nucleotide seq. from given reference
+    - markup_sequence(): annotates seq., includes marking repeats and snps
+    - markup_repeats(): marks repeats longer than 6 bases
+    - markup_SNPs(): marks known SNPs in given dbSNP file
+    - fetch_known_SNPs(): retrieves kown SNPs from dbSNP file for given region
+    """
 
     @staticmethod
     def fetch_region(chrom, start, end):
@@ -452,7 +467,25 @@ class Sequence():
 
 
 class Primer3():
-    """Functions for calling & handling output from primer3"""
+    """
+    Functions for calling & handling output from primer3
+
+    - template(): just a big old ugly string with config for primer3
+    - run_primer3(): calls primer3 and generates dict of sequences
+    - write_primer3_file(): creates req. .primer3 file to run primer3 with
+    - check_primers(): generates fasta file of primer seqs. and calls smalt
+        to map these to given ref., returns dict of seqs. & mapping summary
+    - merge_dict(): flattens a nested dict
+    - primer_report(): adds summary report for each primer in dict
+    - extract_passed_primer_seqs(): returns list with names and seq. of primers
+    - make_primer_mapped_strings(): formats sequence & primers for displaying
+        in report
+    - align_primers_to_seq(): checks if any primers match any regions of the
+        sequence of interest?
+    - check_if_primer_clash(): check if any primers clash with bases between
+        start and end coords
+    - revDNA(): returns reverse compliment of given nucleotide sequence
+    """
 
     def template(self, seq_id, seq, flank, len):
         """
@@ -606,11 +639,15 @@ class Primer3():
 
     def run_primer3(self, seq_id, seq, primer3_file=""):
         """
-        Creates a primer3 file. Runs PRIMER and captures its output and returns it as a dictionary where the name of the
-        primer is the key and the sequence is the value
-        """
-        verbose_print("run_primer3", 2)
+        Creates a primer3 file. Runs PRIMER3 and captures its output and
+        returns it as a dictionary where the name of the primer is the
+        key and the sequence is the value
 
+        Args:
+            -
+        Returns:
+            -
+        """
         if primer3_file == "":
             primer3_file = seq_id + ".primer3"
 
@@ -859,13 +896,9 @@ class Primer3():
         Returns:
             - primer_seqs (list):
         """
-        verbose_print("extract_passed_primer_seqs", 2)
-
         primer_seqs = []
-        left_primer_seqs = []
-        right_primer_seqs = []
-        for primer in passed_primers:
 
+        for primer in passed_primers:
             name = primer
             name = re.sub(r'PRIMER_', '', name)
             name = re.sub(r'_SEQUENCE', '', name)
@@ -944,7 +977,7 @@ class Primer3():
 
     def align_primers_to_seq(self, seq, all_primers):
         """
-        Checking if the primers and their revers sequences match any
+        Checking if the primers and their reverse sequences match any
         regions of the sequence of interest adding everything to a list.
         Used in make_primers_mapped_strings().
 
@@ -954,7 +987,6 @@ class Primer3():
         Returns:
             - mappings ():
         """
-        verbose_print("align_primers_to_seq", 2)
         primers = []
         rev_primers = []
 
@@ -995,8 +1027,6 @@ class Primer3():
         Returns:
             - bool: True if present in list else False
         """
-        verbose_print("check_if_primers_clash", 4)
-
         for i in range(start, end):
             if mapped_list[i] != " ":
                 return True
@@ -1031,8 +1061,22 @@ class Primer3():
 
 
 class Report():
-    """Functions to generate PDF report. Some really weird f strings for
-    adding appropriate padding for displaying report."""
+    """
+    Functions to generate PDF report. Some really weird f strings for
+    adding appropriate padding for displaying report.
+
+    - pretty_pdf_primer_data(): formats header info for pdf
+    - pretty_pdf_fusion_mappings(): annotates the nested dict of sequences
+        for adding to the report
+    - pretty_pdf_mappings(): adds the mapped sequence to the pdf report
+    - pretty_pdf_method(): writes the blurb from method_blurb() to the report
+    - method_blurb(): generates blurb text for report, inc what files used etc.
+    - pretty_primer_data(): generates the .txt file if specified in args
+
+    - pretty_print_mappings(): used to build list of mappings to print to
+        terminal - redundant
+    - pretty_print_primer_data(): same as above, seems pointless
+    """
 
     def pretty_pdf_primer_data(
             self, c, y_offset, primer3_results, passed_primers, width,
@@ -1170,8 +1214,8 @@ class Report():
         Returns:
 
         """
-        # spaces required to match the positions of two breakpoints when pdf is
-        # created
+        # spaces required to match the positions of two breakpoints when
+        # pdf is created
         spaces = ' ' * ((FLANK + 1) % 80)
 
         if FUSION:
@@ -1258,9 +1302,9 @@ class Report():
         return top_offset
 
 
-    def pretty_pdf_mappings(self, top_offset, target_sequence, tagged_string,
-                            primer_strings, primer_colours, base1, c,
-                            side=None, darkside=None):
+    def pretty_pdf_mappings(
+            self, top_offset, target_sequence, tagged_string, primer_strings,
+            primer_colours, base1, c, side=None, darkside=None):
         """
         Outputs the mapping results into the .pdf file
 
@@ -1364,6 +1408,7 @@ class Report():
     def pretty_pdf_method(self, top_offset, args, c, seqs=None):
         """
         Function to do something to the pdf - not sure what...
+            - think it might just be writing the blurb to the report?
 
         Args:
 
@@ -1379,11 +1424,19 @@ class Report():
 
 
     def method_blurb(self, args, seqs=None):
+        """
+        Generates summary blurb text to write into report
+
+        Args:
+            - args (args): cmd line arguments
+            - seqs (dict): dict of sequence info
+        Returns:
+            - lines (list): lines of summary text
+        """
 
         lines = []
 
         if FUSION:
-
             lines.append(
                 'Primer design report for a fusion between chromosome ' +
                 seqs[0]['CHR'] +
@@ -1396,14 +1449,12 @@ class Report():
                 seqs[0]['POS'] +
                 '.')
             for regionid, region_dict in seqs.items():
-
                 if region_dict['STRAND'] == "-1":
                     reverse_region = region_dict['CHR']
                     lines.append(
-                        'The sequence on chromosome ' +
-                        reverse_region +
-                        ' was reverse-complemented to produce this fusion sequence')
-
+                        'The sequence on chromosome ' + reverse_region +
+                        ' was reverse-complemented to produce this fusion sequence'
+                    )
                 else:
                     continue
 
@@ -1423,18 +1474,22 @@ class Report():
         lines.append(
             'allele of frequency >= 1% and for which 2 or more founders contribute to that minor allele frequency.')
 
-        return (lines)
+        return lines
 
 
     def pretty_primer_data(self, outfile, primer3_results, passed_primers,
                            chrom, startpos, endpos, target_sequence=None,
                            FUSION=False, coord_dict=None):
         """
-        function to output the report in txt format. No primers would be
-        displayed on the target sequence
-        """
-        verbose_print("pretty_primer_data", 2)
+        Function to output the report in txt format if specified.
+        No primers would be displayed on the target sequence
 
+        Args:
+
+        Returns: None
+
+        Outputs: {outfile}.txt - text file with primer info
+        """
         fh = open(outfile, 'w')
 
         lines = []
@@ -1478,8 +1533,18 @@ class Report():
         fh.close()
 
 
-    def pretty_print_mappings(self, target_sequence, tagged_string, primer_strings, base1):
-        """used to print out the information of the primers in the terminal"""
+    def pretty_print_mappings(
+            self, target_sequence, tagged_string, primer_strings, base1):
+        """
+        Used to print out the information of the primers in the terminal
+
+        Seems pointless and could probably be removed
+
+        Args:
+            -
+        Returns:
+            -
+        """
 
         lines = []
 
@@ -1499,12 +1564,15 @@ class Report():
 
             lines.append("")
 
-        return (lines)
+        return lines
 
 
     def pretty_print_primer_data(self, primer3_results, passed_primers):
         """
-        function which is never used -- to remove?
+        Function which is never used -- to remove?
+
+        Think this is another like pretty_print_data() to just print to
+        terminal so can probably go
         """
 
         lines = []
@@ -1598,11 +1666,10 @@ def parse_args():
         print("Please select a reference genome to use")
         parser.parse_args('-h')
 
-    return(args, REFERENCE, DBSNP)
+    return args, REFERENCE, DBSNP
 
 
 def main():
-
     args, REFERENCE, DBSNP = parse_args()
     fusion = Fusion()
     sequence = Sequence()
@@ -1616,7 +1683,7 @@ def main():
         seqs = None
 
     elif args.blend:
-        # blend?
+        # blend? - think this is for fusions
         fusion = args.blend
         FUSION = True
         chrom = None
@@ -1630,14 +1697,16 @@ def main():
 
     ### Sequence retrieval and markup ###
 
-    # If fusion is passed, run functions required to get the sequences
-    # and mark them
     if FUSION:
+        # If fusion is passed, run functions required to get the sequences
+        # and mark them
         coord_dicts = fusion.split_input(fusion)
         seqs = fusion.fetch_seqs(coord_dicts)
 
         for ids, dicts in seqs.items():
-            marked_seq, tagged_seq = sequence.markup_sequence(FLANK, dicts, FUSION)
+            marked_seq, tagged_seq = sequence.markup_sequence(
+                FLANK, dicts, FUSION
+            )
             dicts['MSEQ'] = marked_seq
             dicts['TSEQ'] = tagged_seq
             dicts['DARK_SIDE'] = ''
@@ -1661,7 +1730,7 @@ def main():
             region_id = "{}_{}_{}".format(chrom, startpos, endpos)
 
 
-    # Creating primers and choosing the best ones; and converting to strings
+    # Creating primers, choosing the best ones and converting to strings
     primer3_results = run_primer3(region_id, marked_sequence)
 
     passed_primers = primer3.check_primers(
@@ -1681,6 +1750,8 @@ def main():
                 target_sequence, passed_primer_seqs
             )
 
+        #### lines isn't used and function doesn't call anything else,
+        #### can be removed?
         lines = report.pretty_print_mappings(
             target_sequence, tagged_string, mapped_primer_strings,
             startpos - FLANK
@@ -1690,7 +1761,7 @@ def main():
     filename = re.sub("[<>:]", "_", region_id)
 
     if args.output:
-        filename = args.output 
+        filename = args.output
 
     if args.text_output:
         report.pretty_primer_data(
@@ -1739,6 +1810,7 @@ def main():
     c.save()
 
     for filename in TMP_FILES:
+        # clean up temporary files
         print("deleting tmp file: {}".format(filename))
         os.remove(filename)
 
