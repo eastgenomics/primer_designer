@@ -8,6 +8,18 @@ Primers may be designed for single positions, ranges of regions and also breakpo
 
 ***
 
+## Requirements
+
+- python >=3.6 
+- primer3 (2.3.7)
+- smalt (0.7.6)
+- samtools (1.5)
+- GRCh37 & GRCh38 reference FASTA files
+- GRCh37 & GRCh38 dbSNP files
+- `.tff` of desired font for report (e.g. `LiberationMono-Regular.ttf`)
+
+***
+
 ## Usage 
 
 `config.py` must be first populated with paths to required tools and files.
@@ -42,6 +54,7 @@ Example:
 -f 
   (optional) A flag to change the FLANK region used to design primers around. It is the number of bases before and after the indicated position. 
 
+Primer designer may also be called via the `bulk_design.py` script, this allows for passing a `.txt` file of multiple regions at once and outputs a `.zip` file of designer primer reports.
 *** 
 
 
