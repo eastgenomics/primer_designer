@@ -56,7 +56,7 @@ class Fusion():
 
     - split_input(): creates dicts for given coords, used to add attributes
     - fetch_seqs(): calls Sequence.fetch_region() to get sequence from ref
-    - flip_fusion_seq(): returns reverse complement where seq is on same 
+    - flip_fusion_seq(): returns reverse complement where seq is on same
         strand either side of breakpoint
     """
 
@@ -91,7 +91,6 @@ class Fusion():
 
         return coord_dicts
 
-
     def fetch_seqs(self, coord_dict):
         """
         Get the sequences for each coordinates and add the sequences in
@@ -119,7 +118,6 @@ class Fusion():
                 break
 
         return coord_dict
-
 
     def flip_fusion_seq(self, seqs_dict):
         """
@@ -221,14 +219,13 @@ class Sequence():
 
         return sequence
 
-
     def markup_sequence(
         self, flank, sequence, FUSION=False, chrom=None, startpos=None,
         endpos=None
     ):
         """
         Marks the target sequence with "-*-", creates a string of
-        characters representing the SNPs, target lead (50 bases up and 
+        characters representing the SNPs, target lead (50 bases up and
         down the position)
 
         Args:
@@ -327,7 +324,6 @@ class Sequence():
 
         return sequence_list, tagged_string
 
-
     def markup_repeats(self, tags, sequence):
         """
         Marks the repeats in the sequence longer than 6 bases.
@@ -356,7 +352,6 @@ class Sequence():
 
         return tags
 
-
     def markup_SNPs(
         self, dbSNPs, sequence_list, tags, startpos, endpos, FUSION=False,
         side=None
@@ -367,7 +362,7 @@ class Sequence():
         Args:
             - dbSNPs (list): list of snps in given region
             - sequence_list (list): sequnce to annotate with snps
-            - tags 
+            - tags
             - startpos (int):
             - endpos (int):
             - FUSION (bool):
@@ -436,7 +431,6 @@ class Sequence():
         tagged_string = "".join(tags)
 
         return sequence_list, tagged_string
-
 
     def fetch_known_SNPs(self, tabix_file, chrom, start, end):
         """
@@ -628,7 +622,6 @@ class Primer3():
 
         return template
 
-
     def run_primer3(self, seq_id, seq, primer3_file=""):
         """
         Creates a primer3 file. Runs PRIMER3 and captures its output and
@@ -678,7 +671,6 @@ class Primer3():
 
         return output_dict
 
-
     def write_primer3_file(self, seq_id, seq, primer3_file):
         """
         Creates a *.primer3 file required for PRIMER3 to generate primers
@@ -710,7 +702,6 @@ class Primer3():
             outfile.write(template)
 
         outfile.close()
-
 
     def check_primers(self, region_id, target_region, primer3_dict,
                       chromo, startpos, endpos, FUSION=False, seqs=None):
@@ -827,7 +818,6 @@ class Primer3():
 
         return seq_dict
 
-
     def merge_dicts(self, *dicts):
         """
         Given any number of dicts, shallow copy and merge into a new dict,
@@ -843,7 +833,6 @@ class Primer3():
             merged_dicts.update(dictionary)
 
         return merged_dicts
-
 
     def primer_report(self, chromo, startpos, endpos, seq_dict):
         """
@@ -887,7 +876,6 @@ class Primer3():
                 )
 
         return seq_dict
-
 
     def extract_passed_primer_seqs(self, primer3_results, passed_primers):
         """
@@ -1001,7 +989,6 @@ class Report():
 
         return mapped_strings, mapped_colours
 
-
     def check_if_primer_clash(self, mapped_list, start, end):
         """
         Checks whether the primers clash
@@ -1018,7 +1005,6 @@ class Report():
                 return True
 
         return False
-
 
     def align_primers_to_seq(self, seq, all_primers):
         """
@@ -1060,7 +1046,6 @@ class Report():
 
         return mappings
 
-
     def revDNA(self, string):
         """
         Returns reverse compliment of given nucleotide sequence.
@@ -1084,7 +1069,6 @@ class Report():
         rev_str = "".join(rev_str)
 
         return rev_str
-
 
     def pretty_pdf_primer_data(
             self, c, y_offset, primer3_results, passed_primers, width,
@@ -1189,7 +1173,6 @@ class Report():
         y_offset -= 8
 
         return y_offset
-
 
     def pretty_pdf_fusion_mappings(
         self, top_offset, c, coord_dict, passed_primer_seqs, FUSION=False
@@ -1296,7 +1279,6 @@ class Report():
 
         return top_offset
 
-
     def pretty_pdf_mappings(
             self, top_offset, target_sequence, tagged_string, primer_strings,
             primer_colours, base1, c, side=None, darkside=None):
@@ -1393,7 +1375,6 @@ class Report():
 
         return top_offset
 
-
     def pretty_pdf_method(self, top_offset, args, c, seqs=None):
         """
         Function to do something to the pdf - not sure what...
@@ -1410,7 +1391,6 @@ class Report():
         for line in lines:
             c.drawString(40, top_offset, line)
             top_offset -= 8
-
 
     def method_blurb(self, args, seqs=None):
         """
@@ -1460,7 +1440,6 @@ class Report():
         ))
 
         return lines
-
 
     def pretty_primer_data(self, outfile, primer3_results, passed_primers,
                            chrom, startpos, endpos, target_sequence=None,
@@ -1609,7 +1588,7 @@ def main():
         endpos = args.pos
         seqs = None
 
-    ### Sequence retrieval and markup ###
+    # Sequence retrieval and markup
 
     if FUSION:
         # If fusion is passed, run functions required to get the sequences
@@ -1664,13 +1643,6 @@ def main():
                 target_sequence, passed_primer_seqs
             )
 
-        #### lines isn't used and function doesn't call anything else,
-        #### can be removed?
-        lines = report.pretty_print_mappings(
-            target_sequence, tagged_string, mapped_primer_strings,
-            startpos - FLANK
-        )
-
     # generate output PDF report
     filename = re.sub("[<>:]", "_", region_id)
 
@@ -1681,7 +1653,7 @@ def main():
         filename = f'{filename}.txt'
         report.pretty_primer_data(
             filename, primer3_results, passed_primers, chrom, startpos,
-                endpos, target_sequence, FUSION, seqs
+            endpos, target_sequence, FUSION, seqs
         )
     else:
         filename = filename + ".pdf"
