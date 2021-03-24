@@ -8,6 +8,7 @@ Made even better: Jethro Rainford (23 Mar 2021)
 '''
 import argparse
 import os
+from pathlib import Path
 import re
 import shlex
 import subprocess
@@ -37,6 +38,7 @@ MAX_MAPPINGS = 5
 REFERENCE = None  # depends on the chosen reference genome
 DBSNP = None  # depends on the chosen reference genome
 VERSION = '1.2'
+FONT = TTFont('mono', FONT)
 
 TMP_FILES = []
 
@@ -73,7 +75,7 @@ class Fusion():
 
         for i, coordinate in enumerate(coordinates):
             instance = coordinate.split(":")
-
+            print(instance)
             # replacing the a/b with symbols, cos i wrote the whole
             # script with symbols and was lazy to replace them
             if instance[2] == "a":
@@ -207,17 +209,16 @@ class Sequence():
         """
         cmd = f"{SAMTOOLS} faidx {REFERENCE}  {chrom}:{start}-{end} "
         args = shlex.split(cmd)
-        p = subprocess.Popen(args, stdout=subprocess.PIPE)
+        output = subprocess.check_output(args).decode()
 
-        output = p.communicate()
         sequence = ""
 
-        for line in (output[0].split("\n")):
+        for line in (output.split("\n")):
             if re.match('>', line):
                 continue
 
             sequence += line
-
+        print(sequence)
         return sequence
 
 
@@ -243,7 +244,7 @@ class Sequence():
 
         """
         if FUSION:
-            for key, value in sequence.iteritems():
+            for key, value in sequence.items():
                 sequence_list = list(sequence['SEQ'])
                 tags = [" "] * len(sequence['SEQ'])
                 chrom = sequence['CHR']
@@ -452,13 +453,12 @@ class Sequence():
         # call tabix from samtools to get snps in given region
         cmd = f"{TABIX} {tabix_file}  {chrom}:{start}-{end}"
         args = shlex.split(cmd)
-        p = subprocess.Popen(args, stdout=subprocess.PIPE)
+        output = subprocess.check_output(args).decode()
 
-        output = p.communicate()
         snps = []
 
         # build list of snps from output
-        for line in output[0].split("\n"):
+        for line in output.split("\n"):
             snps.append(line.split("\t"))
 
         return snps
@@ -498,8 +498,7 @@ class Primer3():
         Returns:
             - template (str): formatted str of template parameters
         """
-        template = f'''
-            SEQUENCE_ID={seq_id}
+        template = f'''SEQUENCE_ID={seq_id}
             SEQUENCE_TEMPLATE={seq}
             SEQUENCE_TARGET={flank},{len}
             PRIMER_FIRST_BASE_INDEX=1
@@ -629,8 +628,10 @@ class Primer3():
             PRIMER_INTERNAL_WT_GC_PERCENT_LT=0.0
             PRIMER_INTERNAL_WT_TM_LT=1.0
             PRIMER_THERMODYNAMIC_PARAMETERS_PATH={THERMO_PARAMS}
-            =
-        '''
+            ='''
+
+        # stupid regex to remove leading tabs but it works so...
+        template = re.sub(r'(^[ \t]+|[ \t]+(?=:))', '', template, flags=re.M)
 
         return template
 
@@ -649,19 +650,31 @@ class Primer3():
         if primer3_file == "":
             primer3_file = seq_id + ".primer3"
 
+        # prepend absolute path to file
+        primer3_file = f"{Path(__file__).parent.absolute()}/{primer3_file}"
+
         # generate required .primer3 file with config in tmp dir
         primer3_file = re.sub("[<>:]", "_", primer3_file)
         TMP_FILES.append(primer3_file)
-        write_primer3_file(seq_id, seq, primer3_file)
+        self.write_primer3_file(seq_id, seq, primer3_file)
 
         # call primer3 to generate primers
         cmd = "{} < {}".format(PRIMER3, primer3_file)
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
 
-        output = process.communicate()
+        output = subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE)
+
+        stdout = output.stdout
+        stderr = output.stderr
+
+        if stdout:
+            stdout = stdout.decode()
+
+        if stderr:
+            stderr = stderr.decode()
+
         output_dict = dict()
 
-        for line in output[0].split("\n"):
+        for line in stdout.split('\n'):
             if line == '=':
                 break
 
@@ -695,8 +708,8 @@ class Primer3():
                 downstream_start = i
 
         flank = upstream_end
-        len = downstream_start - upstream_end + 1
-        template = self.template(seq_id, seq, flank, len)
+        length = downstream_start - upstream_end + 1
+        template = self.template(seq_id, seq, flank, length)
 
         with open(primer3_file, 'w+') as outfile:
             outfile.write(template)
@@ -755,7 +768,7 @@ class Primer3():
 
         seq_dict = {}
 
-        with open(smalt_results, "r") as f:
+        with open(smalt_out, "r") as f:
             for line in f.readlines():
                 if line.startswith("@") or line.startswith("FULLSEQ"):
                     continue
@@ -832,9 +845,9 @@ class Primer3():
         Returns:
             - merged_dicts (dict): dict of merged dicts
         """
-        result = {}
+        merged_dicts = {}
         for dictionary in dicts:
-            result.update(dictionary)
+            merged_dicts.update(dictionary)
 
         return merged_dicts
 
@@ -851,7 +864,7 @@ class Primer3():
         Returns:
             - seq_dict (dict):
         """
-        for k, v in seq_dict.iteritems():
+        for k, v in seq_dict.items():
             uniq_chr = []
             mis_chr = []
 
@@ -873,11 +886,11 @@ class Primer3():
                 seq_dict[k]['MAPPING_SUMMARY'] = (
                     f'{len(uniq_chr + mis_chr)} mapping(s) on chr '
                     f'{", ".join(uniq_chr + mis_chr)} with '
-                    f'{", ".join(mydict[k]["MISMATCH"])} mismatches'
+                    f'{", ".join(seq_dict[k]["MISMATCH"])} mismatches'
                 )
             elif len(uniq_chr) + len(mis_chr) > 5:
                 seq_dict[k]['MAPPING_SUMMARY'] = (
-                    f'{len(uniq_chr + mis_chr))} mapping(s)'
+                    f'{len(uniq_chr + mis_chr)} mapping(s)'
                 )
 
         return seq_dict
@@ -905,6 +918,24 @@ class Primer3():
         return primer_seqs
 
 
+class Report():
+    """
+    Functions to generate PDF report. Some really weird f strings for
+    adding appropriate padding for displaying report.
+
+    - pretty_pdf_primer_data(): formats header info for pdf
+    - pretty_pdf_fusion_mappings(): annotates the nested dict of sequences
+        for adding to the report
+    - pretty_pdf_mappings(): adds the mapped sequence to the pdf report
+    - pretty_pdf_method(): writes the blurb from method_blurb() to the report
+    - method_blurb(): generates blurb text for report, inc what files used etc.
+    - pretty_primer_data(): generates the .txt file if specified in args
+
+    - pretty_print_mappings(): used to build list of mappings to print to
+        terminal - redundant
+    - pretty_print_primer_data(): same as above, seems pointless
+    """
+
     def make_primer_mapped_strings(self, target_sequence, passed_primer_seqs):
         """
         Creates a mapping string out of the target sequence and primers.
@@ -917,7 +948,7 @@ class Primer3():
             - mapped_strings (list):
             - mapped_colours (list):
         """
-        mappings = align_primers_to_seq(target_sequence, passed_primer_seqs)
+        mappings = self.align_primers_to_seq(target_sequence, passed_primer_seqs)
 
         mapped_strings = []
         mapped_strings.append([" "] * len(target_sequence))
@@ -931,12 +962,12 @@ class Primer3():
             primer_nr = int(re.sub(r'.*_(\d)', r'\1', name))
             mapping_index = 0
 
-            arrows = (len(primer) - len(name) - 2) / 2
+            arrows = int((len(primer) - len(name) - 2) / 2)
             arrow_type = ">"
 
             if strand == 1:
                 # if the primer is on the reverse strand
-                primer = revDNA(primer)
+                primer = self.revDNA(primer)
                 arrow_type = "<"
 
             tag = arrow_type * arrows + " " + name + " " + arrow_type * arrows
@@ -948,7 +979,7 @@ class Primer3():
             scan_index = 0
 
             while(1):
-                if check_if_primer_clash(
+                if self.check_if_primer_clash(
                         mapped_strings[scan_index],
                         pos,
                         pos + len(primer)):
@@ -972,6 +1003,24 @@ class Primer3():
         return mapped_strings, mapped_colours
 
 
+    def check_if_primer_clash(self, mapped_list, start, end):
+        """
+        Checks whether the primers clash
+
+        Args:
+            - mapped_list (list): list of mapped positions
+            - start (int): start pos
+            - end (int): end pos
+        Returns:
+            - bool: True if present in list else False
+        """
+        for i in range(start, end):
+            if mapped_list[i] != " ":
+                return True
+
+        return False
+
+
     def align_primers_to_seq(self, seq, all_primers):
         """
         Checking if the primers and their reverse sequences match any
@@ -990,7 +1039,7 @@ class Primer3():
         for primer_set in all_primers:
             name, primer = primer_set
             primers.append([name, primer])
-            rev_primers.append([name, revDNA(primer)])
+            rev_primers.append([name, self.revDNA(primer)])
 
         mappings = []
 
@@ -1011,24 +1060,6 @@ class Primer3():
                     mappings.append([name, primer, i, 1])
 
         return mappings
-
-
-    def check_if_primer_clash(self, mapped_list, start, end):
-        """
-        Checks whether the primers clash
-
-        Args:
-            - mapped_list (list): list of mapped positions
-            - start (int): start pos
-            - end (int): end pos
-        Returns:
-            - bool: True if present in list else False
-        """
-        for i in range(start, end):
-            if mapped_list[i] != " ":
-                return True
-
-        return False
 
 
     def revDNA(self, string):
@@ -1055,24 +1086,6 @@ class Primer3():
 
         return rev_str
 
-
-class Report():
-    """
-    Functions to generate PDF report. Some really weird f strings for
-    adding appropriate padding for displaying report.
-
-    - pretty_pdf_primer_data(): formats header info for pdf
-    - pretty_pdf_fusion_mappings(): annotates the nested dict of sequences
-        for adding to the report
-    - pretty_pdf_mappings(): adds the mapped sequence to the pdf report
-    - pretty_pdf_method(): writes the blurb from method_blurb() to the report
-    - method_blurb(): generates blurb text for report, inc what files used etc.
-    - pretty_primer_data(): generates the .txt file if specified in args
-
-    - pretty_print_mappings(): used to build list of mappings to print to
-        terminal - redundant
-    - pretty_print_primer_data(): same as above, seems pointless
-    """
 
     def pretty_pdf_primer_data(
             self, c, y_offset, primer3_results, passed_primers, width,
@@ -1165,10 +1178,10 @@ class Report():
             c.drawString(
                 40, y_offset,
                 (
-                    f"{'':10} {float(primer3_results["PRIMER_" + name + "_GC_PERCENT"]):.2f}  "
-                    f"{float(primer3_results["PRIMER_" + name + "_TM"]):.2f}  "
-                    f"{primer3_results["PRIMER_" +name + "_SEQUENCE"]:25}{'':13}"
-                    f"{passed_primers["PRIMER_" + name +"_SEQUENCE"]['MAPPING_SUMMARY']}{'':12}"
+                    f"{'':10} {float(primer3_results['PRIMER_' + name + '_GC_PERCENT']):.2f}  "
+                    f"{float(primer3_results['PRIMER_' + name + '_TM']):.2f}  "
+                    f"{primer3_results['PRIMER_' +name + '_SEQUENCE']:25}{'':13}"
+                    f"{passed_primers['PRIMER_' + name +'_SEQUENCE']['MAPPING_SUMMARY']}{'':12}"
                 )
             )
 
@@ -1404,7 +1417,7 @@ class Report():
 
         Returns:
         """
-        lines = method_blurb(args, seqs)
+        lines = self.method_blurb(args, seqs)
 
         top_offset = 80
 
@@ -1428,9 +1441,9 @@ class Report():
 
         if FUSION:
             lines.append((
-                f'Primer design report for a fusion between chromosome '
-                f'{seqs[0]['CHR']} at the position {seqs[0]['POS']} and '
-                f'chromosome {seqs[1]['CHR']} at the position {seqs[0]['POS']}'
+                f"Primer design report for a fusion between chromosome "
+                f"{seqs[0]['CHR']} at the position {seqs[0]['POS']} and "
+                f"chromosome {seqs[1]['CHR']} at the position {seqs[0]['POS']}"
             ))
             for regionid, region_dict in seqs.items():
                 if region_dict['STRAND'] == "-1":
@@ -1656,11 +1669,26 @@ def parse_args():
 
 
 def main():
+    # gross hacky use of globals, should be better
+    global FUSION
+    global TARGET_LEAD
+    global DBSNP
+    global FLANK
+    global NR_PRIMERS
+    global ALLOWED_MISMATCHES
+    global MAX_MAPPINGS
+    global REFERENCE
+    global VERSION
+    global VERBOSE
+    global FONT
+    global TEMP_FILES
+
     args, REFERENCE, DBSNP = parse_args()
     fusion = Fusion()
     sequence = Sequence()
     primer3 = Primer3()
     report = Report()
+
 
     chrom = args.chr
 
@@ -1670,7 +1698,7 @@ def main():
 
     elif args.blend:
         # blend? - think this is for fusions
-        fusion = args.blend
+        fusion_coords = args.blend
         FUSION = True
         chrom = None
         startpos = None
@@ -1686,7 +1714,7 @@ def main():
     if FUSION:
         # If fusion is passed, run functions required to get the sequences
         # and mark them
-        coord_dicts = fusion.split_input(fusion)
+        coord_dicts = fusion.split_input(fusion_coords)
         seqs = fusion.fetch_seqs(coord_dicts)
 
         for ids, dicts in seqs.items():
@@ -1700,7 +1728,7 @@ def main():
         target_sequence, tagged_string, marked_sequence = \
             fusion.flip_fusion_seq(seqs)
 
-        region_id = fusion
+        region_id = fusion_coords
     else:
         # Normal run: when either a position or range is passed
         target_sequence = sequence.fetch_region(
@@ -1717,7 +1745,7 @@ def main():
 
 
     # Creating primers, choosing the best ones and converting to strings
-    primer3_results = run_primer3(region_id, marked_sequence)
+    primer3_results = primer3.run_primer3(region_id, marked_sequence)
 
     passed_primers = primer3.check_primers(
         region_id, target_sequence, primer3_results, chrom,
@@ -1732,7 +1760,7 @@ def main():
         # Converting the primers into strings which can be out into the
         # PDF report
         mapped_primer_strings, mapped_primer_colours = \
-            primer3.make_primer_mapped_strings(
+            report.make_primer_mapped_strings(
                 target_sequence, passed_primer_seqs
             )
 
@@ -1750,11 +1778,10 @@ def main():
         filename = args.output
 
     if args.text_output:
+        filename = f'{filename}.txt'
         report.pretty_primer_data(
-            "{}.txt".format(
-                filename, primer3_results, passed_primers, chrom, startpos,
-                endpos, fwd_primer, rev_primer, target_sequence, FUSION, seqs
-            )
+            filename, primer3_results, passed_primers, chrom, startpos,
+                endpos, target_sequence, FUSION, seqs
         )
     else:
         filename = filename + ".pdf"
@@ -1774,7 +1801,8 @@ def main():
 
         c.setFont('mono', 8)
         report.pretty_pdf_fusion_mappings(
-            top_offset, c, seqs, passed_primer_seqs, FUSION)
+            top_offset, c, seqs, passed_primer_seqs, FUSION
+        )
 
         report.pretty_pdf_method(top_offset, args, c, seqs)
 
