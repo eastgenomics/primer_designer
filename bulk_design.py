@@ -15,22 +15,19 @@ import subprocess
 import sys
 
 
-def random_string(length=10):
+def random_string(len=10):
     """
     Creates a random string, used to name out dir uniquely
 
     Args:
-      length (int): length of string to generate, default 10
+      len (int): length of string to generate, default 10
 
     returns:
         random_string (str): random character string
     """
-    random_string = ""
-
-    # Choose from lowercase, uppercase and digits
-    alphabet = string.ascii_lowercase + string.ascii_uppercase + string.digits
-    for n in range(0, length):
-        random_string += random.choice(alphabet)
+    random_string = ''.join(random.choices(
+        string.ascii_lowercase + string.ascii_uppercase + string.digits, k=len
+    ))
 
     return random_string
 
