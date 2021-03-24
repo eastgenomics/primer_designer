@@ -654,7 +654,9 @@ class Primer3():
         # call primer3 to generate primers
         cmd = "{} < {}".format(PRIMER3, primer3_file)
 
-        output = subprocess.run(cmd, shell=True, check=True, stdout=subprocess.PIPE)
+        output = subprocess.run(
+            cmd, shell=True, check=True, stdout=subprocess.PIPE
+        )
 
         stdout = output.stdout
         stderr = output.stderr
@@ -820,9 +822,7 @@ class Primer3():
 
             # merge two dictionaries back into one
             seq_dict = self.merge_dicts(left_dict, right_dict)
-
         else:
-            # declare chrom ,start ,end
             seq_dict = self.primer_report(chromo, startpos, endpos, seq_dict)
 
         return seq_dict
@@ -916,7 +916,7 @@ class Report():
     Functions to generate PDF report. Some really weird f strings for
     adding appropriate padding for displaying report.
 
-    - make_primer_mapped_strings(): formats sequence & primers for displaying
+    - make_primer_mapped_str(): formats sequence & primers for displaying
         in report
     - align_primers_to_seq(): checks if any primers match any regions of the
         sequence of interest?
@@ -933,7 +933,7 @@ class Report():
     - pretty_primer_data(): generates the .txt file if specified in args
     """
 
-    def make_primer_mapped_strings(self, target_sequence, passed_primer_seqs):
+    def make_primer_mapped_str(self, target_sequence, passed_primer_seqs):
         """
         Creates a mapping string out of the target sequence and primers.
         Used to be printed on the PDF report.
@@ -945,7 +945,9 @@ class Report():
             - mapped_strings (list):
             - mapped_colours (list):
         """
-        mappings = self.align_primers_to_seq(target_sequence, passed_primer_seqs)
+        mappings = self.align_primers_to_seq(
+            target_sequence, passed_primer_seqs
+        )
 
         mapped_strings = []
         mapped_strings.append([" "] * len(target_sequence))
@@ -1099,12 +1101,6 @@ class Report():
         c.line(40, y_offset, width - 40, y_offset + 2)
         y_offset -= 8
 
-        # old long str kept for reference
-
-        # "Primer design report for a fusion between chr: {} position: {} and chr: {} position: {} ".format(
-        # coord_dict[0]['CHR'], coord_dict[0]['POS'],
-        # coord_dict[1]['CHR'], coord_dict[1]['POS'])
-
         if FUSION:
             # fusion header
             c.drawString(
@@ -1160,28 +1156,21 @@ class Report():
             if name == "RIGHT_0":
                 y_offset -= 8
 
-            # old messy one kept for checking spacing is correct
-
-            # c.drawString(40,
-            #             y_offset,
-            #             "{:10} {:.2f}  {:.2f}  {:25}             {}            ".format("",
-            #                                                                             float(primer3_results["PRIMER_" + name + "_GC_PERCENT"]),
-            #                                                                             float(primer3_results["PRIMER_" + name + "_TM"]),
-            #                                                                             primer3_results["PRIMER_" +name + "_SEQUENCE"],
-            #                                                                             passed_primers["PRIMER_" + name +"_SEQUENCE"]['MAPPING_SUMMARY'],
-            #                                                                             ))
+            # set vars to write into report
+            gc = float(primer3_results['PRIMER_' + name + '_GC_PERCENT'])
+            tm = float(primer3_results['PRIMER_' + name + '_TM'])
+            seq = primer3_results['PRIMER_' + name + '_SEQUENCE']
+            summary = passed_primers[
+                'PRIMER_' + name + '_SEQUENCE']['MAPPING_SUMMARY']
 
             # more weird spacing for report alignment, adds in primer details
             c.drawString(
                 40, y_offset,
                 (
-                    f"{'':10} {float(primer3_results['PRIMER_' + name + '_GC_PERCENT']):.2f}  "
-                    f"{float(primer3_results['PRIMER_' + name + '_TM']):.2f}  "
-                    f"{primer3_results['PRIMER_' +name + '_SEQUENCE']:25}{'':13}"
-                    f"{passed_primers['PRIMER_' + name +'_SEQUENCE']['MAPPING_SUMMARY']}{'':12}"
+                    f"{'':10} {gc:.2f}  {tm):.2f}  "
+                    f"{seq:25}{'':13} {summary}{'':12}"
                 )
             )
-
 
             primer_nr = re.sub(r'.*_(\d)', r'\1', name)
 
@@ -1240,7 +1229,7 @@ class Report():
                 side = coord_dict[0]['DARK_SIDE']
                 darkside = coord_dict[0]['DARK_SIDE']
 
-                primer_strings, primer_colours = self.make_primer_mapped_strings(
+                primer_strings, primer_colours = self.make_primer_mapped_str(
                     target_sequence, passed_primer_seqs)
 
                 top_offset = self.pretty_pdf_mappings(
@@ -1254,7 +1243,7 @@ class Report():
                 side = coord_dict[1]['DARK_SIDE']
                 darkside = coord_dict[1]['DARK_SIDE']
 
-                primer_strings, primer_colours = self.make_primer_mapped_strings(
+                primer_strings, primer_colours = self.make_primer_mapped_str(
                     target_sequence, passed_primer_seqs
                 )
 
@@ -1281,7 +1270,7 @@ class Report():
                 side = coord_dict[1]['DARK_SIDE']
                 darkside = coord_dict[1]['DARK_SIDE']
 
-                primer_strings, primer_colours = self.make_primer_mapped_strings(
+                primer_strings, primer_colours = self.make_primer_mapped_str(
                     target_sequence, passed_primer_seqs
                 )
 
@@ -1296,7 +1285,7 @@ class Report():
                 side = coord_dict[0]['DARK_SIDE']
                 darkside = coord_dict[0]['DARK_SIDE']
 
-                primer_strings, primer_colours = self.make_primer_mapped_strings(
+                primer_strings, primer_colours = self.make_primer_mapped_str(
                     target_sequence, passed_primer_seqs
                 )
 
@@ -1671,7 +1660,7 @@ def main():
         # Converting the primers into strings which can be out into the
         # PDF report
         mapped_primer_strings, mapped_primer_colours = \
-            report.make_primer_mapped_strings(
+            report.make_primer_mapped_str(
                 target_sequence, passed_primer_seqs
             )
 
