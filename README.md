@@ -11,9 +11,9 @@ Primers may be designed for single positions, ranges of regions and also breakpo
 ## Requirements
 
 - python >=3.6 
-- primer3 (2.3.7)
-- smalt (0.7.6)
-- samtools (1.5)
+- [primer3][primer3-url] (2.3.7)
+- [smalt][smalt-url] (0.7.6)
+- [samtools][samtools-url] (1.5)
 - GRCh37 & GRCh38 reference FASTA files
 - GRCh37 & GRCh38 dbSNP files
 - `.tff` of desired font for report (e.g. `LiberationMono-Regular.ttf`)
@@ -78,3 +78,4 @@ Contributions are more than welcome.
 [primer3-url]: https://www.bioinformatics.nl/cgi-bin/primer3plus/primer3plusHelp.cgi
 [smalt-url]: https://www.sanger.ac.uk/tool/smalt-0/
 [fusion-page-url]: https://cuhbioinformatics.atlassian.net/wiki/spaces/BT/pages/481099798/Running+PrimerDesigner+for+fusion+genes
+[samtools-url]: http://www.htslib.org/
