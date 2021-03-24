@@ -6,12 +6,13 @@ Original: Kim Brugger (15 Sep 2015), contact: kim@brugger.dk
 Made better: Nikita Povarnitsyn (09 Apr 2019)
 Made even better: Jethro Rainford (23 Mar 2021)
 '''
-import os
-import sys
-import re
-import subprocess
-import shlex
 import argparse
+import os
+import re
+import shlex
+import subprocess
+import sys
+
 import reportlab
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.lib.pagesizes import A4
@@ -35,7 +36,6 @@ ALLOWED_MISMATCHES = 0
 MAX_MAPPINGS = 5
 REFERENCE = None  # depends on the chosen reference genome
 DBSNP = None  # depends on the chosen reference genome
-VERBOSE = 2
 VERSION = '1.2'
 
 TMP_FILES = []
@@ -1040,7 +1040,6 @@ class Primer3():
         Returns:
             - rev_str (str): nucleotide sequence but magically reversed
         """
-        verbose_print("revDNA", 4)
         rev_bases = {
             'A': 'T', 'a': 'T', 'C': 'G', 'c': 'G',
             'G': 'C', 'g': 'C', 'T': 'A', 'T': 'A',
@@ -1565,11 +1564,7 @@ class Report():
         Think this is another like pretty_print_data() to just print to
         terminal so can probably go
         """
-
         lines = []
-
-        verbose_print("extract_passed_primer_seqs", 3)
-
         lines.append("\n")
         lines.append("\n")
         lines.append("\n")
