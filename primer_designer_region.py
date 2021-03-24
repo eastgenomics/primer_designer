@@ -78,7 +78,6 @@ class Fusion():
             # script with symbols and was lazy to replace them
             if instance[2] == "a":
                 instance[2] = re.sub('a', '<', instance[2])
-
             elif instance[2] == "b":
                 instance[2] = re.sub('b', '>', instance[2])
 
@@ -106,18 +105,15 @@ class Fusion():
                 coord_dict[index]['SEQ'] = Sequence.fetch_region(
                     dict['CHR'], dict['POS'], dict['POS'] + FLANK
                 )
-
             elif dict['SIDE'] == ">":
                 coord_dict[index]['SEQ'] = Sequence.fetch_region(
                     dict['CHR'], dict['POS'] - FLANK, dict['POS']
                 )
-
             else:
-                print(
-                    "The fusion sequence was marked incorrectly. \n  \
-                    The signs to be used: <>. The sign used:  \
-                    dict['SIDE']"
-                )
+                print((
+                    "The fusion sequence was marked incorrectly. \n The "
+                    f"signs to be used: <>. The sign used:  {dict['SIDE']}"
+                ))
                 break
 
         return coord_dict
@@ -218,7 +214,6 @@ class Sequence():
 
         for line in (output[0].split("\n")):
             if re.match('>', line):
-                # skips lines containing '>' for some reason...
                 continue
 
             sequence += line
@@ -264,7 +259,9 @@ class Sequence():
                         if x in range(1, 1 + TARGET_LEAD):
                             tags[x] = '-'
 
-                    sequence_list[TARGET_LEAD -1] = sequence_list[TARGET_LEAD - 1] + '] '
+                    sequence_list[TARGET_LEAD - 1] = (
+                        f'{sequence_list[TARGET_LEAD - 1]} ] '
+                    )
 
                 if side == ">":
                     startpos = int(sequence['POS']) - FLANK
@@ -276,8 +273,9 @@ class Sequence():
                         if x in range(len(tags) - TARGET_LEAD, len(tags) - 1):
                             tags[x] = '-'
 
-                    sequence_list[len(tags) - TARGET_LEAD] = sequence_list[
-                        len(tags) - TARGET_LEAD] + ' ['
+                    sequence_list[len(tags) - TARGET_LEAD] = (
+                        f'{sequence_list[len(tags) - TARGET_LEAD]} ['
+                    )
 
                 dbSNPs = self.fetch_known_SNPs(DBSNP, chrom, startpos, endpos)
                 tags = self.markup_repeats(tags, sequence['SEQ'])
@@ -377,7 +375,6 @@ class Sequence():
             - sequence_list (str): str of joined nucleotide sequences
             - tagged_string (str): sequence but with snp tags
         """
-
         masked_positions = []
 
         for dbSNP in dbSNPs:
@@ -391,28 +388,25 @@ class Sequence():
                 if side == "<":
                     if common == "0":
                         continue
-
                     if snp_pos >= startpos + TARGET_LEAD:
                         mask_pos = snp_pos - startpos
                     else:
                         continue
-
                 elif side == ">":
                     if common == "0":
                         continue
-
                     if snp_pos <= endpos - TARGET_LEAD:
                         mask_pos = snp_pos - startpos
                     else:
                         continue
-
             else:
-                if snp_pos >= startpos - TARGET_LEAD and snp_pos <= endpos + TARGET_LEAD:
+                if (
+                    snp_pos >= startpos - TARGET_LEAD
+                    and snp_pos <= endpos + TARGET_LEAD
+                ):
                     continue
-
                 if common == '0':
                     continue
-
                 if common == '1':
                     mask_pos = snp_pos - (startpos - FLANK)
 
@@ -423,12 +417,15 @@ class Sequence():
                     break
 
                 # If already masked skip masking it again.
-                if re.search('<', sequence_list[mask_pos + i]) or re.search(
-                    r'\[', sequence_list[mask_pos + i]
+                if (
+                    re.search('<', sequence_list[mask_pos + i])
+                    or re.search(r'\[', sequence_list[mask_pos + i])
                 ):
                     continue
 
-                sequence_list[mask_pos + i] = ' <' + sequence_list[mask_pos + i] + '> '
+                sequence_list[mask_pos + i] = (
+                    f' <{sequence_list[mask_pos + i]}> '
+                )
                 tags[mask_pos + i] = 'X'
             else:
                 pass
@@ -452,14 +449,15 @@ class Sequence():
         Returns:
             - snps (list): list of snps within given region
         """
+        # call tabix from samtools to get snps in given region
         cmd = f"{TABIX} {tabix_file}  {chrom}:{start}-{end}"
-
         args = shlex.split(cmd)
         p = subprocess.Popen(args, stdout=subprocess.PIPE)
 
         output = p.communicate()
         snps = []
 
+        # build list of snps from output
         for line in output[0].split("\n"):
             snps.append(line.split("\t"))
 
@@ -651,14 +649,13 @@ class Primer3():
         if primer3_file == "":
             primer3_file = seq_id + ".primer3"
 
+        # generate required .primer3 file with config in tmp dir
         primer3_file = re.sub("[<>:]", "_", primer3_file)
-
         TMP_FILES.append(primer3_file)
-
         write_primer3_file(seq_id, seq, primer3_file)
 
+        # call primer3 to generate primers
         cmd = "{} < {}".format(PRIMER3, primer3_file)
-
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
 
         output = process.communicate()
@@ -669,7 +666,6 @@ class Primer3():
                 break
 
             key, value = line.split("=")
-
             output_dict[key] = value
 
         return output_dict
@@ -728,16 +724,12 @@ class Primer3():
         Returns:
             - seq_dict (dict):
         """
-        verbose_print("check_primers", 2)
-
         region_id = re.sub("[<>:]", "_", region_id)
 
         primers_file = region_id + "_p3seq.fasta"
-
         TMP_FILES.append(primers_file)
 
         with open(primers_file, 'w+') as primerfasta:
-
             primerfasta.write(">FULLSEQ\n" + target_region + "\n")
 
             for i in range(0, 5):
@@ -747,8 +739,8 @@ class Primer3():
                 if pr_id not in primer3_dict or pl_id not in primer3_dict:
                     continue
 
-                primerfasta.write(">{}\n{}\n".format(pl_id, primer3_dict[pl_id]))
-                primerfasta.write(">{}\n{}\n".format(pr_id, primer3_dict[pr_id]))
+                primerfasta.write(f">{pl_id}\n{primer3_dict[pl_id]}\n")
+                primerfasta.write(f">{pr_id}\n{primer3_dict[pr_id]}\n")
 
             primerfasta.close()
 
@@ -757,16 +749,14 @@ class Primer3():
 
         ref = re.sub(r'\..*', '', REFERENCE)
 
+        # run smalt to map primer sequences to reference
         cmd = f"{SMALT} map  -d -1 -m 15 {ref} {primers_file} > {smalt_out}"
-
-        verbose_print(cmd, 4)
         subprocess.call(cmd, shell=True)
 
         seq_dict = {}
 
         with open(smalt_results, "r") as f:
             for line in f.readlines():
-
                 if line.startswith("@") or line.startswith("FULLSEQ"):
                     continue
 
@@ -810,13 +800,17 @@ class Primer3():
                     chromo = dicts['CHR']
                     startpos = int(dicts['POS']) - FLANK
                     endpos = int(dicts['POS'])
-                    left_dict = self.primer_report(chromo, startpos, endpos, left_dict)
+                    left_dict = self.primer_report(
+                        chromo, startpos, endpos, left_dict
+                    )
 
                 elif dicts["DARK_SIDE"] == "<":
                     chromo = dicts['CHR']
                     startpos = int(dicts['POS'])
                     endpos = int(dicts['POS']) + FLANK
-                    right_dict = self.primer_report(chromo, startpos, endpos, right_dict)
+                    right_dict = self.primer_report(
+                        chromo, startpos, endpos, right_dict
+                    )
 
             # merge two dictionaries back into one
             seq_dict = self.merge_dicts(left_dict, right_dict)
@@ -841,6 +835,7 @@ class Primer3():
         result = {}
         for dictionary in dicts:
             result.update(dictionary)
+
         return merged_dicts
 
 
@@ -861,27 +856,29 @@ class Primer3():
             mis_chr = []
 
             for pos, chrom in enumerate(seq_dict[k]['CHR']):
-
-                if seq_dict[k]['CHR'][pos] == chromo and int(
-                        seq_dict[k]['POS'][pos]) in range(
-                        startpos - FLANK,
-                        endpos + 1 + FLANK) and seq_dict[k]['MISMATCH'][pos] == '0':
+                if (
+                    seq_dict[k]['CHR'][pos] == chromo
+                    and int(seq_dict[k]['POS'][pos])
+                    in range(startpos - FLANK, endpos + 1 + FLANK)
+                    and seq_dict[k]['MISMATCH'][pos] == '0'
+                ):
                     uniq_chr.append(seq_dict[k]['CHR'][pos])
-
                 else:
                     mis_chr.append(seq_dict[k]['CHR'][pos])
 
             if len(uniq_chr) == 1 and len(mis_chr) == 0:
-
                 seq_dict[k]['MAPPING_SUMMARY'] = 'unique mapping'
 
             elif len(uniq_chr) + len(mis_chr) in range(2, 6):
-                seq_dict[k]['MAPPING_SUMMARY'] = '{} mapping(s) on chr {} with {} mismatches'.format(
-                    len(uniq_chr + mis_chr), ', '.join(uniq_chr + mis_chr), ', '.join(mydict[k]['MISMATCH']))
-
+                seq_dict[k]['MAPPING_SUMMARY'] = (
+                    f'{len(uniq_chr + mis_chr)} mapping(s) on chr '
+                    f'{", ".join(uniq_chr + mis_chr)} with '
+                    f'{", ".join(mydict[k]["MISMATCH"])} mismatches'
+                )
             elif len(uniq_chr) + len(mis_chr) > 5:
-                seq_dict[k]['MAPPING_SUMMARY'] = '{} mapping(s)'.format(
-                    len(uniq_chr + mis_chr))
+                seq_dict[k]['MAPPING_SUMMARY'] = (
+                    f'{len(uniq_chr + mis_chr))} mapping(s)'
+                )
 
         return seq_dict
 
@@ -1154,7 +1151,7 @@ class Report():
             if name == "RIGHT_0":
                 y_offset -= 8
 
-            # old messy one kept for reference
+            # old messy one kept for checking spacing is correct
 
             # c.drawString(40,
             #             y_offset,
@@ -1318,27 +1315,21 @@ class Report():
         # coordinates go, either in descending or ascending orders
 
         for i in range(0, len(target_sequence), 80):
-
             if FUSION:
-
                 if side == '>' and darkside == '>':
                     p_line = "{}  {}".format(base1 + i, target_sequence[i: i + 80])
                     m_line = "           " + tagged_string[i: i + 80]
-
                 elif side == '<' and darkside == '<':
                     p_line = "{}  {}".format(
                         base1 + i - len(spaces), target_sequence[i: i + 80])
                     m_line = "           " + tagged_string[i: i + 80]
-
                 elif side == '>' and darkside == '<':
                     p_line = "{}  {}".format(
                         base1 - i + len(spaces), target_sequence[i: i + 80])
                     m_line = "           " + tagged_string[i: i + 80]
-
                 elif side == '<' and darkside == '>':
                     p_line = "{}  {}".format(base1 - i, target_sequence[i: i + 80])
                     m_line = "           " + tagged_string[i: i + 80]
-
             else:
                 p_line = "{}  {}".format(base1 + i, target_sequence[i: i + 80])
                 m_line = "           " + tagged_string[i: i + 80]
@@ -1437,42 +1428,38 @@ class Report():
         lines = []
 
         if FUSION:
-            lines.append(
-                'Primer design report for a fusion between chromosome ' +
-                seqs[0]['CHR'] +
-                ' at the position ' +
-                seqs[0]['POS'])
-            lines.append(
-                'and chromosome ' +
-                seqs[1]['CHR'] +
-                ' at the position ' +
-                seqs[0]['POS'] +
-                '.')
+            lines.append((
+                f'Primer design report for a fusion between chromosome '
+                f'{seqs[0]['CHR']} at the position {seqs[0]['POS']} and '
+                f'chromosome {seqs[1]['CHR']} at the position {seqs[0]['POS']}'
+            ))
             for regionid, region_dict in seqs.items():
                 if region_dict['STRAND'] == "-1":
                     reverse_region = region_dict['CHR']
-                    lines.append(
-                        'The sequence on chromosome ' + reverse_region +
-                        ' was reverse-complemented to produce this fusion sequence'
-                    )
+                    lines.append((
+                        f'The sequence on chromosome {reverse_region} was '
+                        'reverse-complemented to produce this fusion sequence'
+                    ))
                 else:
                     continue
 
-        if args.grch37 or args.hg19:
-            lines.append(
-                'primer-designer version: ' +
-                VERSION +
-                ' using dbSNP 144 for SNP checking, and human reference GRCh37.')
+        if args.grch37:
+            lines.append((
+                f'primer-designer version: {VERSION} using dbSNP 144 for '
+                'SNP checking, and human reference GRCh37.'
+            ))
         else:
-            lines.append(
-                'primer-designer version: ' +
-                VERSION +
-                ' using dbSNP 150 for SNP checking, and human reference GRCh38.')
+            lines.append((
+                f'primer-designer version: {VERSION} using dbSNP 150 for '
+                'SNP checking, and human reference GRCh38.'
+            ))
 
-        lines.append(
-            'Common SNP annotation: A common SNP is one that has at least one 1000Genomes population with a minor ')
-        lines.append(
-            'allele of frequency >= 1% and for which 2 or more founders contribute to that minor allele frequency.')
+        lines.append((
+            'Common SNP annotation: A common SNP is one that has at least one '
+            '1000Genomes population with a minor allele of frequency >= 1% '
+            'and for which 2 or more founders contribute to that minor allele '
+            'frequency.'
+        ))
 
         return lines
 
@@ -1495,11 +1482,11 @@ class Report():
         lines = []
         if FUSION:
             lines.append(
-                "Primer design report for a fusion between chr: {} position: {} and chr: {} position: {} ".format(
-                    coord_dict[0]['CHR'],
-                    coord_dict[0]['POS'],
-                    coord_dict[1]['CHR'],
-                    coord_dict[1]['POS']))
+                f"Primer design report for a fusion between chr: "
+                f"{coord_dict[0]['CHR']} position: {coord_dict[0]['POS']} "
+                f"and chr: {coord_dict[1]['CHR']} position: "
+                f"{coord_dict[1]['POS']} "
+            )
 
         elif startpos == endpos:
             lines.append(
@@ -1508,7 +1495,10 @@ class Report():
 
         else:
             lines.append(
-                "Primer design report for chr: {} range: {}-{}".format(chr, startpos, endpos))
+                "Primer design report for chr: {} range: {}-{}".format(
+                    chr, startpos, endpos
+                )
+            )
 
         lines.append("ID\t%GC\tTM\tPrimer sequence\tBest primer\tMapping(s)")
 
@@ -1520,11 +1510,12 @@ class Report():
             name = re.sub(r'PRIMER_', '', name)
             name = re.sub(r'_SEQUENCE', '', name)
 
-            lines.append("\t".join([name, primer3_results["PRIMER_" + name + "_GC_PERCENT"],
-                                    primer3_results["PRIMER_" + name + "_TM"],
-                                    primer3_results["PRIMER_" +
-                                                    name + "_SEQUENCE"],
-                                    passed_primers["PRIMER_" + name + "_SEQUENCE"]['MAPPING_SUMMARY']]))
+            lines.append("\t".join([
+                name, primer3_results["PRIMER_" + name + "_GC_PERCENT"],
+                primer3_results["PRIMER_" + name + "_TM"],
+                primer3_results["PRIMER_" + name + "_SEQUENCE"],
+                passed_primers["PRIMER_" + name + "_SEQUENCE"]['MAPPING_SUMMARY']
+            ]))
 
         lines.append("\n")
         lines.append("Consensus sequence:\n")
