@@ -86,6 +86,6 @@ if __name__ == '__main__':
                 ))
 
     os.chdir("..")
-    system_call("zip -j {} {}/*pdf".format(outfile, working_dir))
+    subprocess.check_call("zip -j {} {}/*pdf".format(outfile, working_dir))
 
     print("SUCCESS\nOutput file: {}".format(outfile))
