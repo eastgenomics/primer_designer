@@ -75,7 +75,7 @@ class Fusion():
 
         for i, coordinate in enumerate(coordinates):
             instance = coordinate.split(":")
-            print(instance)
+
             # replacing the a/b with symbols, cos i wrote the whole
             # script with symbols and was lazy to replace them
             if instance[2] == "a":
@@ -218,7 +218,7 @@ class Sequence():
                 continue
 
             sequence += line
-        print(sequence)
+
         return sequence
 
 
@@ -476,13 +476,6 @@ class Primer3():
     - merge_dict(): flattens a nested dict
     - primer_report(): adds summary report for each primer in dict
     - extract_passed_primer_seqs(): returns list with names and seq. of primers
-    - make_primer_mapped_strings(): formats sequence & primers for displaying
-        in report
-    - align_primers_to_seq(): checks if any primers match any regions of the
-        sequence of interest?
-    - check_if_primer_clash(): check if any primers clash with bases between
-        start and end coords
-    - revDNA(): returns reverse compliment of given nucleotide sequence
     """
 
     def template(self, seq_id, seq, flank, len):
@@ -923,6 +916,14 @@ class Report():
     Functions to generate PDF report. Some really weird f strings for
     adding appropriate padding for displaying report.
 
+    - make_primer_mapped_strings(): formats sequence & primers for displaying
+        in report
+    - align_primers_to_seq(): checks if any primers match any regions of the
+        sequence of interest?
+    - check_if_primer_clash(): check if any primers clash with bases between
+        start and end coords
+    - revDNA(): returns reverse compliment of given nucleotide sequence
+
     - pretty_pdf_primer_data(): formats header info for pdf
     - pretty_pdf_fusion_mappings(): annotates the nested dict of sequences
         for adding to the report
@@ -930,10 +931,6 @@ class Report():
     - pretty_pdf_method(): writes the blurb from method_blurb() to the report
     - method_blurb(): generates blurb text for report, inc what files used etc.
     - pretty_primer_data(): generates the .txt file if specified in args
-
-    - pretty_print_mappings(): used to build list of mappings to print to
-        terminal - redundant
-    - pretty_print_primer_data(): same as above, seems pointless
     """
 
     def make_primer_mapped_strings(self, target_sequence, passed_primer_seqs):
@@ -1534,92 +1531,6 @@ class Report():
         lines. append(target_sequence)
         fh.write("\n".join(lines))
         fh.close()
-
-
-    def pretty_print_mappings(
-            self, target_sequence, tagged_string, primer_strings, base1):
-        """
-        Used to print out the information of the primers in the terminal
-
-        Seems pointless and could probably be removed
-
-        Args:
-            -
-        Returns:
-            -
-        """
-
-        lines = []
-
-        for i in range(0, len(target_sequence), 80):
-
-            lines.append("{}  {}".format(base1 + i, target_sequence[i: i + 80]))
-            lines.append("           " + tagged_string[i: i + 80])
-
-            for primer_string in primer_strings:
-
-                line = "           " + primer_string[i: i + 80]
-
-                if re.match(r'^ *$', line):
-                    continue
-
-                lines.append(line)
-
-            lines.append("")
-
-        return lines
-
-
-    def pretty_print_primer_data(self, primer3_results, passed_primers):
-        """
-        Function which is never used -- to remove?
-
-        Think this is another like pretty_print_data() to just print to
-        terminal so can probably go
-        """
-        lines = []
-        lines.append("\n")
-        lines.append("\n")
-        lines.append("\n")
-        lines.append("_-=-" * 15 + "_")
-
-        if startpos == endpos:
-            lines.append(
-                " Primer design report for chr: {} position: {}".format(
-                    chr, startpos))
-        else:
-            lines.append(
-                " Primer design report for chr: {} range: {}-{}".format(
-                    chr, startpos, endpos
-                )
-            )
-
-        lines.append("_-=-" * 15 + "_")
-        lines.append("\n")
-
-        lines.append(
-            "ID         %GC    TM     Primer sequence           Mapping(s)    ")
-        lines.append("_-=-" * 15 + "_")
-
-        primer_seqs = []
-        for primer in sorted(passed_primers):
-            if primer == 'FULLSEQ':
-                continue
-
-            name = primer
-            name = re.sub(r'PRIMER_', '', name)
-            name = re.sub(r'_SEQUENCE', '', name)
-
-            lines.append("{} {}  {}  {} {}".format(
-                name,
-                float(primer3_results["PRIMER_" + name + "_GC_PERCENT"]),
-                float(primer3_results["PRIMER_" + name + "_TM"]),
-                primer3_results["PRIMER_" +name + "_SEQUENCE"],
-                passed_primers["PRIMER_" + name + "_SEQUENCE"]['MAPPING_SUMMARY']))
-
-        lines.append("")
-        lines.append("-=" * 46)
-        lines.append("")
 
 
 def parse_args():
