@@ -480,8 +480,8 @@ class Primer3():
 
     def template(self, seq_id, seq, flank, len):
         """
-        Returns str of template params for generating pdf, in separate
-        function as it is long and ugly.
+        Returns str of params for .primer3 file to run primer3.
+        In separate function as it is long and ugly.
 
         Args:
             - seq_id (str):
