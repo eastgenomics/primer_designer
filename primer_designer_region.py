@@ -97,9 +97,9 @@ class Fusion():
         the nested dictionary
 
         Args:
-            - coord_dicts (dict): nested dict of coordinate dicts
+            - coord_dict (dict): nested dict of coordinate dicts
         Returns:
-            - coord_dicts (dict): nested dict of coordinate dicts
+            - coord_dict (dict): nested dict of coordinate dicts
         """
         for index, dict in coord_dict.items():
             if dict['SIDE'] == "<":
@@ -111,70 +111,89 @@ class Fusion():
                     dict['CHR'], dict['POS'] - FLANK, dict['POS']
                 )
             else:
-                print((
+                # invalid side symbol passed
+                raise ValueError((
                     "The fusion sequence was marked incorrectly. \n The "
                     f"signs to be used: <>. The sign used:  {dict['SIDE']}"
                 ))
-                break
 
         return coord_dict
 
     def flip_fusion_seq(self, seqs_dict):
         """
-        Flips a sequence in case two same sides relative to breakpoint
-        are added
+        Loops over lsit of dicts of fusion sequences, flips a sequence
+        in case two same sides relative to breakpoint are added.
 
         Args:
-            -
+            - seqs_dict (list): list of dicts for each sequence
         Returns:
-            -
+            - target_sequence (str): both target sequences joined
+            - marked_sequence (str): both marked sequences joined
+            - tagged_sequence (str): both tagged sequences joined
         """
         complement = {
             'A': 'T', 'C': 'G', 'G': 'C', 'T': 'A',
             '<': '>', '>': '<', '[': ']', ']': '['
         }
 
-        # DARK_SIDE is requrired to store original SIDE value, which is
+        # DARK_SIDE is required to store original SIDE value, which is
         # used in pick_best_primer() as well as printing coordinates in
         # the right order
 
         for i in range(0, len(seqs_dict)):
 
             if seqs_dict[i]['SIDE'] == ">" and seqs_dict[i]['STRAND'] == "1":
+                # add DARK_SIDE tag same as side
                 seqs_dict[i]['DARK_SIDE'] = ">"
 
             elif seqs_dict[i]['SIDE'] == "<" and seqs_dict[i]['STRAND'] == "1":
+                # add DARK_SIDE tag same as side
                 seqs_dict[i]['DARK_SIDE'] = "<"
 
             elif seqs_dict[i]['SIDE'] == ">" and seqs_dict[i]['STRAND'] == "-1":
+                # on rev strand, get reverse complement of nroaml and marked
+                # sequence, reverse tagged seq and add DARK_SIDE 
                 seqs_dict[i]['SEQ'] = "".join(complement.get(
                     base, base) for base in seqs_dict[i]['SEQ'][::-1])
+
                 seqs_dict[i]['MSEQ'] = "".join(complement.get(
                     base, base) for base in seqs_dict[i]['MSEQ'][::-1])
+
                 seqs_dict[i]['TSEQ'] = seqs_dict[i]['TSEQ'][::-1]
                 seqs_dict[i]['DARK_SIDE'] = "<"
 
             elif seqs_dict[i]['SIDE'] == "<" and seqs_dict[i]['STRAND'] == "-1":
+                # on rev strand, get reverse complement of nroaml and marked
+                # sequence, reverse tagged seq and add DARK_SIDE 
                 seqs_dict[i]['SEQ'] = "".join(complement.get(
                     base, base) for base in seqs_dict[i]['SEQ'][::-1])
+
                 seqs_dict[i]['MSEQ'] = "".join(complement.get(
                     base, base) for base in seqs_dict[i]['MSEQ'][::-1])
+
                 seqs_dict[i]['TSEQ'] = seqs_dict[i]['TSEQ'][::-1]
                 seqs_dict[i]['DARK_SIDE'] = ">"
 
         if seqs_dict[0]['DARK_SIDE'] == ">" and seqs_dict[1]['DARK_SIDE'] == "<":
+            # one set seqs before and after breakpoint => valid (?)
             target_sequence = ''.join([seqs_dict[0]['SEQ'], seqs_dict[1]['SEQ']])
             marked_sequence = ''.join([seqs_dict[0]['MSEQ'], seqs_dict[1]['MSEQ']])
             tagged_string = ''.join([seqs_dict[0]['TSEQ'], seqs_dict[1]['TSEQ']])
 
         elif seqs_dict[0]['DARK_SIDE'] == "<" and seqs_dict[1]['DARK_SIDE'] == ">":
+            # one set seqs before and after breakpoint => valid (?)
             target_sequence = ''.join([seqs_dict[1]['SEQ'], seqs_dict[0]['SEQ']])
             marked_sequence = ''.join([seqs_dict[1]['MSEQ'], seqs_dict[0]['MSEQ']])
             tagged_string = ''.join([seqs_dict[1]['TSEQ'], seqs_dict[0]['TSEQ']])
 
         else:
-            print("This fusion is not possible")
-            sys.exit()
+            # I think it gets here if both of the coordinates are either
+            # before or after the breakpoint?
+            raise ValueError((
+                "An error occured in designing fusion primers, this design "
+                "does not seem possible as both sequences are on the same "
+                "side of the breakpoint. Please review the parameters passed."
+            ))
 
         return target_sequence, tagged_string, marked_sequence
 
@@ -238,49 +257,49 @@ class Sequence():
         Returns:
             - sequence_list (list): list of nucleotide sequences (?)
             - tagged_string (str): sequence with snp tags
-
         """
         if FUSION:
-            for key, value in sequence.items():
-                sequence_list = list(sequence['SEQ'])
-                tags = [" "] * len(sequence['SEQ'])
-                chrom = sequence['CHR']
-                side = sequence['SIDE']
+            # loop in main() passes single dicts for each sequence here
+            # in case of fusions
+            sequence_list = list(sequence['SEQ'])
+            tags = [" "] * len(sequence['SEQ'])
+            chrom = sequence['CHR']
+            side = sequence['SIDE']
 
-                if side == "<":
-                    startpos = int(sequence['POS'])
-                    endpos = startpos + FLANK
+            if side == "<":
+                startpos = int(sequence['POS'])
+                endpos = startpos + FLANK
 
-                    tags[0] = '*'
+                tags[0] = '*'
 
-                    for x in range(0, len(tags)):
-                        if x in range(1, 1 + TARGET_LEAD):
-                            tags[x] = '-'
+                for x in range(0, len(tags)):
+                    if x in range(1, 1 + TARGET_LEAD):
+                        tags[x] = '-'
 
-                    sequence_list[TARGET_LEAD - 1] = (
-                        f'{sequence_list[TARGET_LEAD - 1]} ] '
-                    )
-
-                if side == ">":
-                    startpos = int(sequence['POS']) - FLANK
-                    endpos = int(sequence['POS'])
-
-                    tags[-1] = '*'
-
-                    for x in range(0, len(tags)):
-                        if x in range(len(tags) - TARGET_LEAD, len(tags) - 1):
-                            tags[x] = '-'
-
-                    sequence_list[len(tags) - TARGET_LEAD] = (
-                        f'{sequence_list[len(tags) - TARGET_LEAD]} ['
-                    )
-
-                dbSNPs = self.fetch_known_SNPs(DBSNP, chrom, startpos, endpos)
-                tags = self.markup_repeats(tags, sequence['SEQ'])
-
-                sequence_list, tagged_string = self.markup_SNPs(
-                    dbSNPs, sequence_list, tags, startpos, endpos, FUSION, side
+                sequence_list[TARGET_LEAD - 1] = (
+                    f'{sequence_list[TARGET_LEAD - 1]} ] '
                 )
+
+            if side == ">":
+                startpos = int(sequence['POS']) - FLANK
+                endpos = int(sequence['POS'])
+
+                tags[-1] = '*'
+
+                for x in range(0, len(tags)):
+                    if x in range(len(tags) - TARGET_LEAD, len(tags) - 1):
+                        tags[x] = '-'
+
+                sequence_list[len(tags) - TARGET_LEAD] = (
+                    f'{sequence_list[len(tags) - TARGET_LEAD]} ['
+                )
+
+            dbSNPs = self.fetch_known_SNPs(DBSNP, chrom, startpos, endpos)
+            tags = self.markup_repeats(tags, sequence['SEQ'])
+
+            sequence_list, tagged_string = self.markup_SNPs(
+                dbSNPs, sequence_list, tags, startpos, endpos, FUSION, side
+            )
 
         else:
             # run normal markup sequence
@@ -299,13 +318,15 @@ class Sequence():
                     tags[x] = '*'
                 # TARGET_LEAD is 50 bases, 50 bases up nad down the central
                 # nucleotide are tagged
-                if x in range(start - TARGET_LEAD,
-                            start) or x in range(end, end + TARGET_LEAD):
+                if (
+                    x in range(start - TARGET_LEAD, start)
+                    or x in range(end, end + TARGET_LEAD)
+                ):
                     tags[x] = '-'
 
             # Tag the target sequence (50 bases up and down the central
-            # nucleotide), regardless of the nature of the variant only one (1)
-            # base is tagged as the target.
+            # nucleotide), regardless of the nature of the variant only
+            # one (1) base is tagged as the target.
             sequence_list[flank - TARGET_LEAD] = ' [' + \
                 sequence[flank - TARGET_LEAD]
 
@@ -330,6 +351,7 @@ class Sequence():
 
         Args:
             - tags (list): empty list to add tags to (?)
+            - sequence (str): nucleotide sequence to identify repeats on
         Returns:
             - tags (list): list of added tags
         """
@@ -654,11 +676,14 @@ class Primer3():
         stdout = output.stdout
         stderr = output.stderr
 
-        if stdout:
-            stdout = stdout.decode()
-
         if stderr:
             stderr = stderr.decode()
+            raise RuntimeError(
+                "Error in running primer3 to design primers. Error:\n"
+                f"{stderr}"
+            )
+        else:
+            stdout = stdout.decode()
 
         output_dict = dict()
 
