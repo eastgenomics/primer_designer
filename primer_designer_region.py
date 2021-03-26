@@ -1173,7 +1173,7 @@ class Report():
             c.drawString(
                 40, y_offset,
                 (
-                    f"{'':10} {gc:.2f}  {tm):.2f}  "
+                    f"{'':10} {gc:.2f}  {tm:.2f}  "
                     f"{seq:25}{'':13} {summary}{'':12}"
                 )
             )
