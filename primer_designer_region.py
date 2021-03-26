@@ -224,17 +224,14 @@ class Sequence():
             - sequence (str): target sequence from reference file
 
         """
+        # call samtools to get sequence from fasta
         cmd = f"{SAMTOOLS} faidx {REFERENCE}  {chrom}:{start}-{end} "
         args = shlex.split(cmd)
         output = subprocess.check_output(args).decode()
 
-        sequence = ""
-
-        for line in (output.split("\n")):
-            if re.match('>', line):
-                continue
-
-            sequence += line
+        sequence = [
+            line for line in (output.split("\n")) if not re.match('>', line)
+        ]
 
         return sequence
 
