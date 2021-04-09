@@ -229,9 +229,9 @@ class Sequence():
         args = shlex.split(cmd)
         output = subprocess.check_output(args).decode()
 
-        sequence = [
+        sequence = ''.join([
             line for line in (output.split("\n")) if not re.match('>', line)
-        ]
+        ])
 
         return sequence
 
