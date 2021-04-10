@@ -482,8 +482,8 @@ class Primer3():
     Functions for calling & handling output from primer3
 
     - template(): just a big old ugly string with config for primer3
-    - run_primer3(): calls primer3 and generates dict of sequences
     - write_primer3_file(): creates req. .primer3 file to run primer3 with
+    - run_primer3(): calls primer3 and generates dict of sequences
     - check_primers(): generates fasta file of primer seqs. and calls smalt
         to map these to given ref., returns dict of seqs. & mapping summary
     - merge_dict(): flattens a nested dict
@@ -641,6 +641,38 @@ class Primer3():
 
         return template
 
+    def write_primer3_file(self, seq_id, seq, primer3_file):
+        """
+        Creates a *.primer3 file required for PRIMER3 to generate primers
+        for a given sequence
+
+        Args:
+            - seq_id (int):
+            - seq (str):
+            - primer3_file (str): file name for primer3 file
+
+        Returns: None
+
+        Outputs: primer3 run file
+        """
+        upstream_end = 1
+        downstream_start = 2
+
+        for i in range(0, len(seq)):
+            if seq[i] == '[':
+                upstream_end = i
+            elif seq[i] == ']':
+                downstream_start = i
+
+        flank = upstream_end
+        length = downstream_start - upstream_end + 1
+        template = self.template(seq_id, seq, flank, length)
+
+        with open(primer3_file, 'w+') as outfile:
+            outfile.write(template)
+
+        outfile.close()
+
     def run_primer3(self, seq_id, seq, primer3_file=""):
         """
         Creates a primer3 file. Runs PRIMER3 and captures its output and
@@ -692,38 +724,6 @@ class Primer3():
             output_dict[key] = value
 
         return output_dict
-
-    def write_primer3_file(self, seq_id, seq, primer3_file):
-        """
-        Creates a *.primer3 file required for PRIMER3 to generate primers
-        for a given sequence
-
-        Args:
-            - seq_id (int):
-            - seq (str):
-            - primer3_file (str): file name for primer3 file
-
-        Returns: None
-
-        Outputs: primer3 run file
-        """
-        upstream_end = 1
-        downstream_start = 2
-
-        for i in range(0, len(seq)):
-            if seq[i] == '[':
-                upstream_end = i
-            elif seq[i] == ']':
-                downstream_start = i
-
-        flank = upstream_end
-        length = downstream_start - upstream_end + 1
-        template = self.template(seq_id, seq, flank, length)
-
-        with open(primer3_file, 'w+') as outfile:
-            outfile.write(template)
-
-        outfile.close()
 
     def check_primers(self, region_id, target_region, primer3_dict,
                       chromo, startpos, endpos, FUSION=False, seqs=None):
