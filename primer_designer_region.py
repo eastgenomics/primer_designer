@@ -229,9 +229,9 @@ class Sequence():
         args = shlex.split(cmd)
         output = subprocess.check_output(args).decode()
 
-        sequence = [
+        sequence = ''.join([
             line for line in (output.split("\n")) if not re.match('>', line)
-        ]
+        ])
 
         return sequence
 
@@ -468,11 +468,10 @@ class Sequence():
         args = shlex.split(cmd)
         output = subprocess.check_output(args).decode()
 
-        snps = []
-
-        # build list of snps from output
-        for line in output.split("\n"):
-            snps.append(line.split("\t"))
+        # build list of lists of snps from output
+        snps = [
+            line.split("\t") for line in output.split("\n")
+        ]
 
         return snps
 
@@ -1580,9 +1579,8 @@ def main():
     global MAX_MAPPINGS
     global REFERENCE
     global VERSION
-    global VERBOSE
     global FONT
-    global TEMP_FILES
+    global TMP_FILES
 
     args, REFERENCE, DBSNP = parse_args()
     fusion = Fusion()
