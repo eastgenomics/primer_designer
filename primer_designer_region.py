@@ -7,6 +7,7 @@ Made better: Nikita Povarnitsyn (09 Apr 2019)
 Made even better: Jethro Rainford (23 Mar 2021)
 '''
 import argparse
+from configparser import ConfigParser
 import os
 from pathlib import Path
 import re
@@ -36,10 +37,13 @@ VERSION = '1.2'
 
 # font file in static dir
 FONT = TTFont(
-    'mono', f'{Path().absolute()}/static/LiberationMono-Regular.ttf'
+    'mono', (
+        f'{os.path.dirname(os.path.abspath(__file__))}'
+        '/static/LiberationMono-Regular.ttf'
+    )
 )
 
-# expect primer3 to be on path, get thermoparams dir from build location
+# get thermoparams dir from primer3 build location
 try:
     THERMO_PARAMS = f'{Path(which("primer3_core")).parents[0]}/primer3_config/'
 except TypeError:
@@ -231,12 +235,26 @@ class Sequence():
 
         """
         # call samtools to get sequence from fasta
-        cmd = f"samtools faidx {REFERENCE}  {chrom}:{start}-{end} "
-        args = shlex.split(cmd)
-        output = subprocess.check_output(args).decode()
+        cmd = f"samtools faidx {REFERENCE}  {chrom}:{start}-{end}"
+
+        output = subprocess.run(
+            cmd, shell=True, check=True, stdout=subprocess.PIPE
+        )
+
+        stdout = output.stdout
+        stderr = output.stderr
+
+        if stderr:
+            stderr = stderr.decode()
+            raise RuntimeError(
+                "Error in running samtools faidx. Error:\n"
+                f"{stderr}"
+            )
+        else:
+            stdout = stdout.decode()
 
         sequence = ''.join([
-            line for line in (output.split("\n")) if not re.match('>', line)
+            line for line in (stdout.split("\n")) if not re.match('>', line)
         ])
 
         return sequence
@@ -471,12 +489,28 @@ class Sequence():
         """
         # call tabix from samtools to get snps in given region
         cmd = f"tabix {tabix_file}  {chrom}:{start}-{end}"
-        args = shlex.split(cmd)
-        output = subprocess.check_output(args).decode()
+        # args = shlex.split(cmd)
+        # output = subprocess.check_output(args).decode()
+
+        output = subprocess.run(
+            cmd, shell=True, check=True, stdout=subprocess.PIPE
+        )
+
+        stdout = output.stdout
+        stderr = output.stderr
+
+        if stderr:
+            stderr = stderr.decode()
+            raise RuntimeError(
+                "Error in retrieving SNPs. Error:\n"
+                f"{stderr}"
+            )
+        else:
+            stdout = stdout.decode()
 
         # build list of lists of snps from output
         snps = [
-            line.split("\t") for line in output.split("\n")
+            line.split("\t") for line in stdout.split("\n")
         ]
 
         return snps
@@ -773,10 +807,12 @@ class Primer3():
         smalt_out = region_id + ".smalt"
         TMP_FILES.append(smalt_out)
 
-        ref = re.sub(r'\..*', '', REFERENCE)
-
+        # get passed ref file with no extension, smalt requires {ref}.sma
+        # file and searches itself for it
+        # ref = re.sub(r'\..*', '', REFERENCE)
+        
         # run smalt to map primer sequences to reference
-        cmd = f"{SMALT} map  -d -1 -m 15 {ref} {primers_file} > {smalt_out}"
+        cmd = f"smalt map  -d -1 -m 15 {REFERENCE} {primers_file} > {smalt_out}"
         subprocess.call(cmd, shell=True)
 
         seq_dict = {}
@@ -1284,7 +1320,7 @@ class Report():
                     target_sequence, passed_primer_seqs
                 )
 
-                top_offset = pretty_pdf_mappings(
+                top_offset = self.pretty_pdf_mappings(
                     top_offset, target_sequence, tagged_string, primer_strings,
                     primer_colours, base1, c, side, darkside
                 )
@@ -1310,12 +1346,15 @@ class Report():
             self, top_offset, target_sequence, tagged_string, primer_strings,
             primer_colours, base1, c, side=None, darkside=None):
         """
-        Outputs the mapping results into the .pdf file
+        Writes the reference sequence and primers with markup to the report
 
         Args:
 
         Returns:
         """
+        # throughout this mess p_line is the 'primer line' which is actually
+        # the reference target sequence region and m_line is the 'markup line'
+        # that has the sequence annotation
         spaces = ' ' * ((FLANK + 1) % 80)
 
         # The flip of one of the sequences defines how the numeration of
@@ -1325,25 +1364,29 @@ class Report():
             if FUSION:
                 if side == '>' and darkside == '>':
                     p_line = "{}  {}".format(base1 + i, target_sequence[i: i + 80])
-                    m_line = "           " + tagged_string[i: i + 80]
+                    m_line = "          " + tagged_string[i: i + 80]
                 elif side == '<' and darkside == '<':
                     p_line = "{}  {}".format(
                         base1 + i - len(spaces), target_sequence[i: i + 80])
-                    m_line = "           " + tagged_string[i: i + 80]
+                    m_line = "          " + tagged_string[i: i + 80]
                 elif side == '>' and darkside == '<':
                     p_line = "{}  {}".format(
                         base1 - i + len(spaces), target_sequence[i: i + 80])
-                    m_line = "           " + tagged_string[i: i + 80]
+                    m_line = "          " + tagged_string[i: i + 80]
                 elif side == '<' and darkside == '>':
                     p_line = "{}  {}".format(base1 - i, target_sequence[i: i + 80])
-                    m_line = "           " + tagged_string[i: i + 80]
+                    m_line = "          " + tagged_string[i: i + 80]
             else:
                 p_line = "{}  {}".format(base1 + i, target_sequence[i: i + 80])
-                m_line = "           " + tagged_string[i: i + 80]
+                m_line = "          " + tagged_string[i: i + 80]
 
             x_offset = 40
+
             for k in range(0, len(p_line)):
                 # Setting colour of the SNPs and the indicated position
+                # using + 1 as everything seems offset, not sure where the +1
+                # has been introduced to the markup but rolling with it
+                print('k: ', k)
                 if m_line[k] == "X":
                     c.setFillColorRGB(255, 0, 0)
                 elif m_line[k] == "*":
@@ -1353,6 +1396,7 @@ class Report():
                 elif m_line[k] == "^":
                     c.setFillColorRGB(0, 0, 255)
 
+                # write the reference sequence to pdf
                 c.drawString(x_offset, top_offset, p_line[k])
                 x_offset += stringWidth(" ", 'mono', 8)
                 c.setFillColorRGB(0, 0, 0)
@@ -1363,7 +1407,7 @@ class Report():
 
             if re.search(r'\*', m_line) or re.search(r'\-', m_line):
                 # setting colour for the TARGET LEAD (50 base pairs around the
-                # position of interest)
+                # position of interest) & writes target region line to pdf
                 c.setFillColorRGB(0, 190, 0)
                 c.drawString(40, top_offset, m_line)
                 c.setFillColorRGB(0, 0, 0)
@@ -1371,27 +1415,30 @@ class Report():
                 top_offset -= 8
 
             for j in range(0, len(primer_strings)):
+                # write the rest of the markup to the pdf
                 primer_string = primer_strings[j]
                 primer_colour = primer_colours[j]
 
                 line = primer_string[i: i + 80]
-                if (re.match(r'^ *$', line)):
+                if re.match(r'^ *$', line):
                     continue
 
-                x_offset = 40 + stringWidth(" ", 'mono', 8) * 11
+                # no idea how this sizing was decided on but it now works so...
+                x_offset = 40 + stringWidth(" ", 'mono', 8) * 10
 
                 for k in range(i, i + 80):
                     if k > len(target_sequence) - 1:
                         break
 
                     if primer_colour[k] >= 0:
-
+                        # set appropriate colouring
                         c.setFillColorRGB(
                             colours[primer_colour[k]][0],
                             colours[primer_colour[k]][1],
                             colours[primer_colour[k]][2]
                         )
 
+                    # write the primer sequence markers (i.e. left & right)
                     c.drawString(x_offset, top_offset, primer_string[k])
                     x_offset += stringWidth(" ", 'mono', 8)
                     c.setFillColorRGB(0, 0, 0)
@@ -1459,11 +1506,16 @@ class Report():
                 'SNP checking, and human reference GRCh38.'
             ))
 
+        # add final footer text, split over lines as line breaks refused
+        # to work and I don't care enough to debug reportlab
+        lines.append('')
         lines.append((
             'Common SNP annotation: A common SNP is one that has at least one '
-            '1000Genomes population with a minor allele of frequency >= 1% '
-            'and for which 2 or more founders contribute to that minor allele '
-            'frequency.'
+            '1000Genomes population with a minor allele '
+        ))
+        lines.append((  
+            'of frequency >= % and for which 2 or more founders contribute to '
+            'that minor allele frequency.'
         ))
 
         return lines
@@ -1567,25 +1619,17 @@ def parse_args():
 
     args = parser.parse_args()
 
-    # if args.grch37:
-    #     REFERENCE = REF_37
-    #     DBSNP = DBSNP_37
-
-    # elif args.grch38:
-    #     REFERENCE = REF_38
-    #     DBSNP = DBSNP_38
-    # else:
-
     if not args.grch37 or args.grch38:
         print("Please select a reference genome to use")
         parser.parse_args('-h')
+        sys.exit()
 
-    return args, REFERENCE, DBSNP
+    return args
 
 
 def load_config(args):
     """
-    Load in config parameters, takes either config from args or env varibles
+    Load in config parameters, takes either config from args or env variables
 
     Args:
         - args: cmd line arguments
@@ -1593,11 +1637,11 @@ def load_config(args):
         - REFERENCE (str): path to appropriate passed reference build file
         - DBSNP (str): path to appropriate passed dbsnp file
     """
-    config = configparser.ConfigParser()
-
     if args.config:
         # passed config file
+        config = ConfigParser()
         config.read(args.config)
+
         if args.grch37:
             REFERENCE = config['REFERENCE']['REF_37']
             DBSNP = config['REFERENCE']['DBSNP_37']
@@ -1616,11 +1660,16 @@ def load_config(args):
     if not REFERENCE and not DBSNP:
         raise ValueError('Missing path for reference or dbsnp')
 
+    # # check valid files passed
+    # assert Path(REFERENCE).is_file() and Path(DBSNP).is_file(), (
+    #     f'Invalid reference and/or dbsnp file passed.\n'
+    #     f'Reference: {REFERENCE}\ndbsnp: {DBSNP}'
+    # )
+
     return REFERENCE, DBSNP
 
 
 def main():
-    # gross hacky use of globals, should be better
     global FUSION
     global TARGET_LEAD
     global DBSNP
@@ -1633,9 +1682,15 @@ def main():
     global FONT
     global TMP_FILES
 
+    # parse args, load in file paths from config
     args = parse_args()
     REFERENCE, DBSNP = load_config(args)
 
+    # check required tools installed and on PATH
+    for tool in ['samtools', 'tabix', 'primer3_core', 'smalt']:
+        assert which(tool), f'{tool} is not on path, is it installed?'
+
+    # initialise classes
     fusion = Fusion()
     sequence = Sequence()
     primer3 = Primer3()
