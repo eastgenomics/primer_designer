@@ -11,6 +11,7 @@ import os
 from pathlib import Path
 import re
 import shlex
+from shutil import which
 import subprocess
 import sys
 
@@ -20,12 +21,6 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.pdfbase import pdfmetrics
-
-# paths to req. tools, defined in config
-from config import THERMO_PARAMS, FONT, \
-    REF_37, REF_38, DBSNP_37, DBSNP_38
 
 
 # Default parameters
@@ -38,7 +33,18 @@ MAX_MAPPINGS = 5
 REFERENCE = None  # depends on the chosen reference genome
 DBSNP = None  # depends on the chosen reference genome
 VERSION = '1.2'
-FONT = TTFont('mono', FONT)
+
+# font file in static dir
+FONT = TTFont(
+    'mono', f'{Path().absolute()}/static/LiberationMono-Regular.ttf'
+)
+
+# expect primer3 to be on path, get thermoparams dir from build location
+try:
+    THERMO_PARAMS = f'{Path(which("primer3_core")).parents[0]}/primer3_config/'
+except TypeError:
+    # will raise TypeError from Path if not valid
+    print('primer3 missing from path.')
 
 TMP_FILES = []
 
@@ -1525,6 +1531,13 @@ class Report():
 def parse_args():
     parser = argparse.ArgumentParser()
 
+    parser.add_argument(
+        '--config', required=False,
+        help=(
+            'Config file with paths to required reference files, use env '
+            'variables if not used.'
+        )
+    )
     parser.add_argument('-c', '--chr')
     # only the position or range can be given
     group = parser.add_mutually_exclusive_group(required=True)
@@ -1554,18 +1567,56 @@ def parse_args():
 
     args = parser.parse_args()
 
-    if args.grch37:
-        REFERENCE = REF_37
-        DBSNP = DBSNP_37
+    # if args.grch37:
+    #     REFERENCE = REF_37
+    #     DBSNP = DBSNP_37
 
-    elif args.grch38:
-        REFERENCE = REF_38
-        DBSNP = DBSNP_38
-    else:
+    # elif args.grch38:
+    #     REFERENCE = REF_38
+    #     DBSNP = DBSNP_38
+    # else:
+
+    if not args.grch37 or args.grch38:
         print("Please select a reference genome to use")
         parser.parse_args('-h')
 
     return args, REFERENCE, DBSNP
+
+
+def load_config(args):
+    """
+    Load in config parameters, takes either config from args or env varibles
+
+    Args:
+        - args: cmd line arguments
+    Returns:
+        - REFERENCE (str): path to appropriate passed reference build file
+        - DBSNP (str): path to appropriate passed dbsnp file
+    """
+    config = configparser.ConfigParser()
+
+    if args.config:
+        # passed config file
+        config.read(args.config)
+        if args.grch37:
+            REFERENCE = config['REFERENCE']['REF_37']
+            DBSNP = config['REFERENCE']['DBSNP_37']
+        else:
+            REFERENCE = config['REFERENCE']['REF_38']
+            DBSNP = config['REFERENCE']['DBSNP_38']
+    else:
+        # no config file, try read from env
+        if args.grch37:
+            REFERENCE = os.environ.get('REF_37', None)
+            DBSNP = os.environ.get('DBSNP_37', None)
+        else:
+            REFERENCE = os.environ.get('REF_38', None)
+            DBSNP = os.environ.get('DBSNP_38', None)
+
+    if not REFERENCE and not DBSNP:
+        raise ValueError('Missing path for reference or dbsnp')
+
+    return REFERENCE, DBSNP
 
 
 def main():
@@ -1582,7 +1633,9 @@ def main():
     global FONT
     global TMP_FILES
 
-    args, REFERENCE, DBSNP = parse_args()
+    args = parse_args()
+    REFERENCE, DBSNP = load_config(args)
+
     fusion = Fusion()
     sequence = Sequence()
     primer3 = Primer3()
