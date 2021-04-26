@@ -24,7 +24,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 
 # paths to req. tools, defined in config
-from config import SAMTOOLS, TABIX, SMALT, PRIMER3, THERMO_PARAMS, FONT, \
+from config import THERMO_PARAMS, FONT, \
     REF_37, REF_38, DBSNP_37, DBSNP_38
 
 
@@ -225,7 +225,7 @@ class Sequence():
 
         """
         # call samtools to get sequence from fasta
-        cmd = f"{SAMTOOLS} faidx {REFERENCE}  {chrom}:{start}-{end} "
+        cmd = f"samtools faidx {REFERENCE}  {chrom}:{start}-{end} "
         args = shlex.split(cmd)
         output = subprocess.check_output(args).decode()
 
@@ -464,7 +464,7 @@ class Sequence():
             - snps (list): list of snps within given region
         """
         # call tabix from samtools to get snps in given region
-        cmd = f"{TABIX} {tabix_file}  {chrom}:{start}-{end}"
+        cmd = f"tabix {tabix_file}  {chrom}:{start}-{end}"
         args = shlex.split(cmd)
         output = subprocess.check_output(args).decode()
 
@@ -695,7 +695,7 @@ class Primer3():
         self.write_primer3_file(seq_id, seq, primer3_file)
 
         # call primer3 to generate primers
-        cmd = "{} < {}".format(PRIMER3, primer3_file)
+        cmd = f"primer3_core {primer3_file}"
 
         output = subprocess.run(
             cmd, shell=True, check=True, stdout=subprocess.PIPE
@@ -1587,7 +1587,6 @@ def main():
     sequence = Sequence()
     primer3 = Primer3()
     report = Report()
-
 
     chrom = args.chr
 

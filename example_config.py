@@ -1,9 +1,9 @@
 # required files for running primer designer
 
-SAMTOOLS = ''
-TABIX = ''
-SMALT = ''
-PRIMER3 = ''
+# SAMTOOLS = ''
+# TABIX = ''
+# SMALT = ''
+# PRIMER3 = ''
 THERMO_PARAMS = ""
 FONT = TTFont('mono', '')
 REF_37 = ''
