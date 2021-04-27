@@ -1770,11 +1770,14 @@ def main():
                 target_sequence, passed_primer_seqs
             )
 
-    # generate output PDF report
-    filename = re.sub("[<>:]", "_", region_id)
+    # generate output PDF report, write to output dir in folder
+    filename = (
+        f'{os.path.dirname(os.path.abspath(__file__))}/output/'
+        f'{re.sub("[<>:]", "_", region_id)}'
+    )
 
     if args.output:
-        filename = args.output
+        filename = f'{args.output}'
 
     if args.text_output:
         filename = f'{filename}.txt'
