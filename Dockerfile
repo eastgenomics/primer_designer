@@ -5,14 +5,14 @@ WORKDIR /home
 RUN mkdir /home/software && ls
 
 # get htslib and build
-RUN wget https://github.com/samtools/htslib/releases/download/1.12/htslib-1.12.tar.bz2
-RUN tar xvf htslib-1.12.tar.bz2 && rm htslib-1.12.tar.bz2
-RUN cd htslib-1.12 && ./configure --prefix=/home/software/htslib && make && make install && rm -rf htslib-1.12
+RUN wget https://github.com/samtools/htslib/releases/download/1.5/htslib-1.5.tar.bz2
+RUN tar xvf htslib-1.5.tar.bz2 && rm htslib-1.5.tar.bz2
+RUN cd htslib-1.5 && ./configure --prefix=/home/software/htslib && make && make install && rm -rf htslib-1.5
 
 # get samtools and build
-RUN wget https://github.com/samtools/samtools/releases/download/1.12/samtools-1.12.tar.bz2
-RUN tar xvf samtools-1.12.tar.bz2 && rm samtools-1.12.tar.bz2
-RUN cd samtools-1.12 && ./configure --prefix=/home/software/samtools && make && make install && rm -rf samtools-1.12
+RUN wget https://github.com/samtools/samtools/releases/download/1.5/samtools-1.5.tar.bz2
+RUN tar xvf samtools-1.5.tar.bz2 && rm samtools-1.5.tar.bz2
+RUN cd samtools-1.5 && ./configure --prefix=/home/software/samtools && make && make install && rm -rf samtools-1.5
 
 # get and build smalt
 RUN cd software && wget https://sourceforge.net/projects/smalt/files/smalt-0.7.6.tar.gz/download -O smalt.tar.gz
