@@ -1803,16 +1803,14 @@ def main():
             )
 
     # generate output PDF report, write to output dir in folder
-    filename = (
-        f'{os.path.dirname(os.path.abspath(__file__))}/output/'
-        f'{re.sub("[<>:]", "_", region_id)}'
-    )
+    output_dir = f'{os.path.dirname(os.path.abspath(__file__))}/output/'
+    filename = f'{output_dir}{re.sub("[<>:]", "_", region_id)}'
 
     if args.output:
-        filename = f'{args.output}'
+        filename = f'{output_dir}{args.output}'
 
     if args.text_output:
-        filename = f'{filename}.txt'
+        filename = f'{output_dir}{filename}.txt'
         report.pretty_primer_data(
             filename, primer3_results, passed_primers, chrom, startpos,
             endpos, target_sequence, FUSION, seqs

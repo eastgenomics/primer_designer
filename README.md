@@ -22,14 +22,14 @@ Key highlights:
 - [smalt][smalt-url] (0.7.6)
 - [samtools][samtools-url] (1.5)
 - GRCh37 & GRCh38 reference FASTA files
-- GRCh37 & GRCh38 [dbSNP VCF][dbsnp-url]
+- GRCh37 & GRCh38 [dbSNP VCFs][dbsnp-url]
 - Docker (optional)
 
 ***
 
 ## General Usage 
 
-For useage with Docker, please see below.
+For usage with Docker, please see below.
 
 Paths to reference files may either be provided through environment variables or passing `--config` and adding paths to the `primer_designer.cfg` file, required vars are given in `example_primer_designer.cfg`.
 
@@ -114,4 +114,4 @@ Contributions are more than welcome.
 [smalt-url]: https://www.sanger.ac.uk/tool/smalt-0/
 [fusion-page-url]: https://cuhbioinformatics.atlassian.net/wiki/spaces/BT/pages/481099798/Running+PrimerDesigner+for+fusion+genes
 [samtools-url]: http://www.htslib.org/
-[db-snp]: https://ftp.ncbi.nih.gov/snp/organisms/
+[dbsnp-url]: https://ftp.ncbi.nih.gov/snp/organisms/
