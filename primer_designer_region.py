@@ -163,7 +163,7 @@ class Fusion():
 
             elif seqs_dict[i]['SIDE'] == ">" and seqs_dict[i]['STRAND'] == "-1":
                 # on rev strand, get reverse complement of nroaml and marked
-                # sequence, reverse tagged seq and add DARK_SIDE 
+                # sequence, reverse tagged seq and add DARK_SIDE
                 seqs_dict[i]['SEQ'] = "".join(complement.get(
                     base, base) for base in seqs_dict[i]['SEQ'][::-1])
 
@@ -175,7 +175,7 @@ class Fusion():
 
             elif seqs_dict[i]['SIDE'] == "<" and seqs_dict[i]['STRAND'] == "-1":
                 # on rev strand, get reverse complement of nroaml and marked
-                # sequence, reverse tagged seq and add DARK_SIDE 
+                # sequence, reverse tagged seq and add DARK_SIDE
                 seqs_dict[i]['SEQ'] = "".join(complement.get(
                     base, base) for base in seqs_dict[i]['SEQ'][::-1])
 
@@ -887,7 +887,7 @@ class Primer3():
                 elif "LEFT" in key:
                     left_dict[key] = seq_dict[key]
 
-            for ids, dicts in seqs.items():
+            for _, dicts in seqs.items():
                 if dicts["DARK_SIDE"] == ">":
                     chromo = dicts['CHR']
                     startpos = int(dicts['POS']) - FLANK
