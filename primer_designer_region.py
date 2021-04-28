@@ -29,7 +29,7 @@ FLANK = 500
 FUSION = False
 TARGET_LEAD = 50
 NR_PRIMERS = 4
-ALLOWED_MISMATCHES = 0
+ALLOWED_MISMATCHES = 5
 MAX_MAPPINGS = 5
 REFERENCE = None  # depends on the chosen reference genome
 DBSNP = None  # depends on the chosen reference genome
@@ -414,26 +414,36 @@ class Sequence():
             - sequence_list (str): str of joined nucleotide sequences
             - tagged_string (str): sequence but with snp tags
         """
-        masked_positions = []
 
         for dbSNP in dbSNPs:
-            if len(dbSNP) < 6:
+            # snp records are list of lists, loop over and parse each
+
+            if len(dbSNP) < 8:
+                # some field missing or empty line etc.
                 continue
 
-            snp_chr, snp_pos, snp_id, snp_ref, snp_alt, common = dbSNP[0:6]
+            # split out required fields from snp record in vcf
+            _, snp_pos, _, snp_ref, _, _, _, info = dbSNP
             snp_pos = int(snp_pos)
+
+            # parse common value from info field
+            try:
+                common = re.search(r'(COMMON=.)', info).group(1).split('=')[1]
+            except:
+                # common value missing, should always be there
+                continue
+
+            if common == '0':
+                # not a common snp, don't mask
+                continue
 
             if FUSION:
                 if side == "<":
-                    if common == "0":
-                        continue
                     if snp_pos >= startpos + TARGET_LEAD:
                         mask_pos = snp_pos - startpos
                     else:
                         continue
                 elif side == ">":
-                    if common == "0":
-                        continue
                     if snp_pos <= endpos - TARGET_LEAD:
                         mask_pos = snp_pos - startpos
                     else:
@@ -444,15 +454,16 @@ class Sequence():
                     and snp_pos <= endpos + TARGET_LEAD
                 ):
                     continue
-                if common == '0':
-                    continue
+
                 if common == '1':
+                    # common => mark position to be masked
                     mask_pos = snp_pos - (startpos - FLANK)
 
-            # In the odd case we are looking at common deletion, mask the whole
-            # region. Normally this will just be one base
             for i in range(0, len(snp_ref)):
+                # should normally just be one base but can be larger
+
                 if len(sequence_list) <= mask_pos + i:
+                    # position outside of sequence region
                     break
 
                 # If already masked skip masking it again.
@@ -462,15 +473,17 @@ class Sequence():
                 ):
                     continue
 
+                # add <> around marked bases in sequence, used later to
+                # highlight snps in sequence
                 sequence_list[mask_pos + i] = (
                     f' <{sequence_list[mask_pos + i]}> '
                 )
+                # tag for colouring snps
                 tags[mask_pos + i] = 'X'
             else:
                 pass
 
-        sequence_list = "".join(sequence_list)
-        sequence_list = re.sub(' ', '', sequence_list)
+        sequence_list = "".join(sequence_list).replace(' ', '')
         tagged_string = "".join(tags)
 
         return sequence_list, tagged_string
@@ -487,11 +500,9 @@ class Sequence():
         Returns:
             - snps (list): list of snps within given region
         """
-        # call tabix from samtools to get snps in given region
+        # call tabix from samtools to get snps in given region from vcf
         cmd = f"tabix {tabix_file}  {chrom}:{start}-{end}"
-        # args = shlex.split(cmd)
-        # output = subprocess.check_output(args).decode()
-
+        
         output = subprocess.run(
             cmd, shell=True, check=True, stdout=subprocess.PIPE
         )
@@ -809,10 +820,10 @@ class Primer3():
 
         # get passed ref file with no extension, smalt requires {ref}.sma
         # file and searches itself for it
-        # ref = re.sub(r'\..*', '', REFERENCE)
-        
+        ref = re.sub(r'\..*', '', REFERENCE)
+        # ref = REFERENCE
         # run smalt to map primer sequences to reference
-        cmd = f"smalt map  -d -1 -m 15 {REFERENCE} {primers_file} > {smalt_out}"
+        cmd = f"smalt map  -d -1 {ref} {primers_file} > {smalt_out}"
         subprocess.call(cmd, shell=True)
 
         seq_dict = {}
@@ -822,14 +833,14 @@ class Primer3():
                 if line.startswith("@") or line.startswith("FULLSEQ"):
                     continue
 
+                # split line & parse
                 line = line.split('\t')
-
                 name = line[0]
                 chrom = line[2]
                 pos = line[3]
                 mismatch = len(line[9]) - int(line[12].split(':')[2])
 
-                if mismatch > 5:
+                if mismatch > ALLOWED_MISMATCHES:
                     continue
 
                 if name not in seq_dict:
@@ -1384,9 +1395,6 @@ class Report():
 
             for k in range(0, len(p_line)):
                 # Setting colour of the SNPs and the indicated position
-                # using + 1 as everything seems offset, not sure where the +1
-                # has been introduced to the markup but rolling with it
-                print('k: ', k)
                 if m_line[k] == "X":
                     c.setFillColorRGB(255, 0, 0)
                 elif m_line[k] == "*":
@@ -1582,7 +1590,6 @@ class Report():
 
 def parse_args():
     parser = argparse.ArgumentParser()
-
     parser.add_argument(
         '--config', required=False,
         help=(
@@ -1619,7 +1626,7 @@ def parse_args():
 
     args = parser.parse_args()
 
-    if not args.grch37 or args.grch38:
+    if not args.grch37 and not args.grch38:
         print("Please select a reference genome to use")
         parser.parse_args('-h')
         sys.exit()
@@ -1825,10 +1832,10 @@ def main():
     c.showPage()
     c.save()
 
-    for filename in TMP_FILES:
-        # clean up temporary files
-        print("deleting tmp file: {}".format(filename))
-        os.remove(filename)
+    # for filename in TMP_FILES:
+    #     # clean up temporary files
+    #     print("deleting tmp file: {}".format(filename))
+    #     os.remove(filename)
 
 
 if __name__ == '__main__':
