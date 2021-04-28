@@ -473,8 +473,8 @@ class Sequence():
                 ):
                     continue
 
-                # add <> around marked bases in sequence, used later to
-                # highlight snps in sequence
+                # add <> around marked bases in sequence, used to make sure
+                # it doesn't get masked again
                 sequence_list[mask_pos + i] = (
                     f' <{sequence_list[mask_pos + i]}> '
                 )
