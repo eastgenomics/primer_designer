@@ -85,7 +85,7 @@ docker run
   --env REF_37=/reference_files/grch37/human_g1k_v37.fasta 
   --env DBSNP_37=/reference_files/dbsnp_37.vcf.gz 
   primer_designer 
-  python3 primer_designer/primer_designer_region.py -c 8 -p 21988118 --grch37
+  python3 primer_designer_region.py -c 8 -p 21988118 --grch37
 ```
 In the above example a local dir `reference_files/` contains the files and is mounted in the container at `/reference_files`. The environment variables `REF_37` and `DBSNP_37` are passed with paths to the files relative from the reference files dir.
 
