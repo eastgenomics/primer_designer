@@ -429,8 +429,10 @@ class Sequence():
             # parse common value from info field
             try:
                 common = re.search(r'(COMMON=.)', info).group(1).split('=')[1]
-            except:
+            except Exception as e:
                 # common value missing, should always be there
+                # catching everything as no idea what errors it could raise
+                print(f'Error with SNP record: {dbSNP}\n{e}')
                 continue
 
             if common == '0':
