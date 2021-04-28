@@ -823,7 +823,10 @@ class Primer3():
         # get passed ref file with no extension, smalt requires {ref}.sma
         # file and searches itself for it
         ref = re.sub(r'\..*', '', REFERENCE)
-        # ref = REFERENCE
+        ref = REFERENCE
+
+        # print(os.path.exists(os.path.abspath(REFERENCE)))
+        # sys.exit()
         # run smalt to map primer sequences to reference
         cmd = f"smalt map  -d -1 {ref} {primers_file} > {smalt_out}"
         subprocess.call(cmd, shell=True)
@@ -1374,24 +1377,49 @@ class Report():
         # coordinates go, either in descending or ascending orders
 
         for i in range(0, len(target_sequence), 80):
+            # base1 is initial coordinate, iterating in blocks of 80 bases
+            # to the end of the ref sequence. This defines the width to the
+            # beginning of the m_line to match the beginning of p_line.
+            # All of this basically just aligns both sequence and the markup.
             if FUSION:
                 if side == '>' and darkside == '>':
-                    p_line = "{}  {}".format(base1 + i, target_sequence[i: i + 80])
-                    m_line = "          " + tagged_string[i: i + 80]
+                    # forward strand and before break
+                    start_coord = str(base1 + i)
+                    m_line_pad = len(start_coord)
+
+                    p_line = f"{start_coord}  {target_sequence[i: i + 80]}"
+                    m_line = f"{' ' * m_line_pad}  {tagged_string[i: i + 80]}"
+
                 elif side == '<' and darkside == '<':
-                    p_line = "{}  {}".format(
-                        base1 + i - len(spaces), target_sequence[i: i + 80])
-                    m_line = "          " + tagged_string[i: i + 80]
+                    # reverse strand and after break
+                    start_coord = str(base1 + i - len(spaces))
+                    m_line_pad = len(start_coord)
+
+                    p_line = f"{start_coord}  {target_sequence[i: i + 80]}"
+                    m_line = f"{' ' * m_line_pad}  {tagged_string[i: i + 80]}"
+
                 elif side == '>' and darkside == '<':
-                    p_line = "{}  {}".format(
-                        base1 - i + len(spaces), target_sequence[i: i + 80])
-                    m_line = "          " + tagged_string[i: i + 80]
+                    # forward strand and after break
+                    start_coord = str(base1 - i + len(spaces))
+                    m_line_pad = len(start_coord)
+
+                    p_line = f"{start_coord}  {target_sequence[i: i + 80]}"
+                    m_line = f"{m_line_pad}  {tagged_string[i: i + 80]}"
+
                 elif side == '<' and darkside == '>':
-                    p_line = "{}  {}".format(base1 - i, target_sequence[i: i + 80])
-                    m_line = "          " + tagged_string[i: i + 80]
+                    # reverse strand and before break
+                    start_coord = str(base1 - i)
+                    m_line_pad = len(start_coord)
+
+                    p_line = f"{start_coord}  {target_sequence[i: i + 80]}"
+                    m_line = f"{m_line_pad}  {tagged_string[i: i + 80]}"
             else:
-                p_line = "{}  {}".format(base1 + i, target_sequence[i: i + 80])
-                m_line = "          " + tagged_string[i: i + 80]
+                # normal primers
+                start_coord = str(base1 + i)
+                m_line_pad = lenn(start_coord)
+
+                p_line = f"{start_coord}  {target_sequence[i: i + 80]}"
+                m_line = f"{m_line_pad}  {tagged_string[i: i + 80]}"
 
             x_offset = 40
 
@@ -1431,10 +1459,11 @@ class Report():
 
                 line = primer_string[i: i + 80]
                 if re.match(r'^ *$', line):
+                    # empty line
                     continue
-
+                
                 # no idea how this sizing was decided on but it now works so...
-                x_offset = 40 + stringWidth(" ", 'mono', 8) * 10
+                x_offset = 40 + stringWidth(" ", 'mono', m_line_pad) * 10
 
                 for k in range(i, i + 80):
                     if k > len(target_sequence) - 1:
@@ -1669,12 +1698,6 @@ def load_config(args):
     if not REFERENCE and not DBSNP:
         raise ValueError('Missing path for reference or dbsnp')
 
-    # # check valid files passed
-    # assert Path(REFERENCE).is_file() and Path(DBSNP).is_file(), (
-    #     f'Invalid reference and/or dbsnp file passed.\n'
-    #     f'Reference: {REFERENCE}\ndbsnp: {DBSNP}'
-    # )
-
     return REFERENCE, DBSNP
 
 
@@ -1834,10 +1857,10 @@ def main():
     c.showPage()
     c.save()
 
-    # for filename in TMP_FILES:
-    #     # clean up temporary files
-    #     print("deleting tmp file: {}".format(filename))
-    #     os.remove(filename)
+    for filename in TMP_FILES:
+        # clean up temporary files
+        print("deleting tmp file: {}".format(filename))
+        os.remove(filename)
 
 
 if __name__ == '__main__':
