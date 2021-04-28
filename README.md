@@ -6,6 +6,13 @@ It utilises [primer3][primer3-url] and [smalt][smalt-url] to generate primers fo
 
 Primers may be designed for single positions, ranges of regions and also breakpoints for fusion events. All primers are marked up with known SNPs for the given reference from dbSNP and also highlights repeat regions.
 
+Key highlights:
+- generates up to 5 pairs of designed primers for given position(s) with GC% and TM
+- identifies number of mappings (if not unique)
+- highlights SNPs from dbSNP
+- highlights repeat regions of >6 bases
+- highlights bases up and downstream of target
+
 ***
 
 ## Requirements
