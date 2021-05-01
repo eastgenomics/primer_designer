@@ -860,6 +860,7 @@ class Primer3():
                 mismatch = len(line[9]) - int(line[12].split(':')[2])
 
                 if mismatch > ALLOWED_MISMATCHES:
+                    # too many mismatches, drop
                     continue
 
                 if name not in seq_dict:
@@ -940,32 +941,52 @@ class Primer3():
             - seq_dict (dict):
         """
         for k, v in seq_dict.items():
+            # dict of dicts with primer information, each sub dict has
+            # chr, pos and list of mismatches
             uniq_chr = []
             mis_chr = []
 
+            print(k, v)
+
             for pos, chrom in enumerate(seq_dict[k]['CHR']):
+                # same chromosome, position in range and no mismatch
                 if (
                     seq_dict[k]['CHR'][pos] == chromo
                     and int(seq_dict[k]['POS'][pos])
                     in range(startpos - FLANK, endpos + 1 + FLANK)
                     and seq_dict[k]['MISMATCH'][pos] == '0'
                 ):
+                    # uniquely mapped primer and in within region
                     uniq_chr.append(seq_dict[k]['CHR'][pos])
                 else:
+                    # not uniquely mapped / outside region
                     mis_chr.append(seq_dict[k]['CHR'][pos])
 
             if len(uniq_chr) == 1 and len(mis_chr) == 0:
+                # uniquely mapped
                 seq_dict[k]['MAPPING_SUMMARY'] = 'unique mapping'
 
+            elif len(uniq_chr) == 0 and len(mis_chr) == 1:
+                # unique but chromosome doesnt match, somehow primer has
+                # been designer but seems to not map back to target region
+                seq_dict[k]['MAPPING_SUMMARY'] = 'unique - wrong chromosome'
+
             elif len(uniq_chr) + len(mis_chr) in range(2, 6):
+                # 2-5 mismatches
                 seq_dict[k]['MAPPING_SUMMARY'] = (
                     f'{len(uniq_chr + mis_chr)} mapping(s) on chr '
                     f'{", ".join(uniq_chr + mis_chr)} with '
                     f'{", ".join(seq_dict[k]["MISMATCH"])} mismatches'
                 )
             elif len(uniq_chr) + len(mis_chr) > 5:
+                # many mismatches
                 seq_dict[k]['MAPPING_SUMMARY'] = (
                     f'{len(uniq_chr + mis_chr)} mapping(s)'
+                )
+            else:
+                # shouldn't get here, added an else to stop a key error later
+                seq_dict[k]['MAPPING_SUMMARY'] = (
+                    'Error in primer, could not determine total mismatches'
                 )
 
         return seq_dict
@@ -1224,14 +1245,18 @@ class Report():
         y_offset -= 8
 
         primer_seqs = []
-
+        print(passed_primers)
+        print(' ')
         for primer in sorted(passed_primers):
+            # loop over dict of primers
             name = primer
             name = re.sub(r'PRIMER_', '', name)
             name = re.sub(r'_SEQUENCE', '', name)
-
+            print(primer)
             if name == "RIGHT_0":
                 y_offset -= 8
+
+            
 
             # set vars to write into report
             gc = float(primer3_results['PRIMER_' + name + '_GC_PERCENT'])
