@@ -80,7 +80,7 @@ def run_test(args, genes_df):
                     max(glob.glob(rf'{test_out}*.pdf'), key=os.path.getctime)
                 )
         except subprocess.CalledProcessError as exc:
-            print('Oh no, an error...')
+            print('Oh no, an error, adding to file')
             errors.append(f"Error designing primers for {chr}:{random_pos}")
             stderr = exc.output.decode()
             errors.append(stderr)
