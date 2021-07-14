@@ -21,9 +21,18 @@ Key highlights:
 - [primer3][primer3-url] (2.3.7)
 - [smalt][smalt-url] (0.7.6)
 - [samtools][samtools-url] (1.5)
-- GRCh37 & GRCh38 reference FASTA files
+- GRCh37 & GRCh38 reference FASTA files (+ indexes)
 - GRCh37 & GRCh38 [dbSNP VCFs][dbsnp-url]
 - Docker (optional)
+
+n.b. index files for reference genome need generating with both samtools faidx and smalt index INDEX REFSEQ-FILE
+
+- default setting -k 13 -s 13, where k is word length and s is step size
+- recommended setting for 100bp Illumina read is -k 20 -s 13
+- smalt index outputs 2 files:
+  - `INDEX.sma`: compressed set of reference sequences
+  - `INDEX.smi`: hash index
+- smalt manual available [here][smalt-manual-url]
 
 ***
 
@@ -112,6 +121,7 @@ Contributions are more than welcome.
 
 [primer3-url]: https://www.bioinformatics.nl/cgi-bin/primer3plus/primer3plusHelp.cgi
 [smalt-url]: https://www.sanger.ac.uk/tool/smalt-0/
+[smalt-manual-url]: ftp://ftp.sanger.ac.uk/pub/resources/software/smalt/smalt-manual-0.7.4.pdf
 [fusion-page-url]: https://cuhbioinformatics.atlassian.net/wiki/spaces/BT/pages/481099798/Running+PrimerDesigner+for+fusion+genes
 [samtools-url]: http://www.htslib.org/
 [dbsnp-url]: https://ftp.ncbi.nih.gov/snp/organisms/
