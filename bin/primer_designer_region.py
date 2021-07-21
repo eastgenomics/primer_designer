@@ -24,6 +24,7 @@ from reportlab.pdfgen import canvas
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 
+from version import VERSION
 
 # Default parameters
 FLANK = 500
@@ -34,12 +35,11 @@ ALLOWED_MISMATCHES = 5
 MAX_MAPPINGS = 5
 REFERENCE = None  # depends on the chosen reference genome
 DBSNP = None  # depends on the chosen reference genome
-VERSION = '1.2'
 
 # font file in static dir
 FONT = TTFont(
     'mono', (
-        f'{os.path.dirname(os.path.abspath(__file__))}'
+        f'{os.path.dirname(os.path.dirname(os.path.abspath(__file__)))}'
         '/static/LiberationMono-Regular.ttf'
     )
 )
@@ -1848,7 +1848,7 @@ def main():
             )
 
     # generate output PDF report, write to output dir in folder
-    output_dir = f'{os.path.dirname(os.path.abspath(__file__))}/output/'
+    output_dir = f'{os.path.dirname(os.path.dirname(os.path.abspath(__file__)))}/output/'
     filename = f'{output_dir}{re.sub("[<>:]", "_", region_id)}'
 
     if args.output:
