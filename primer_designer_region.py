@@ -1565,10 +1565,11 @@ class Report():
 
         if FUSION:
             lines.append((
-                f"Primer design report for a fusion between chromosome "
-                f"{seqs[0]['CHR']} at the position {seqs[0]['POS']} and "
-                f"chromosome {seqs[1]['CHR']} at the position {seqs[0]['POS']}"
+                f"Primer design report for a fusion between "
+                f"{seqs[0]['CHR']}:{seqs[0]['POS']} and "
+                f"{seqs[1]['CHR']}:{seqs[0]['POS']}"
             ))
+
             for regionid, region_dict in seqs.items():
                 if region_dict['STRAND'] == "-1":
                     reverse_region = region_dict['CHR']
@@ -1580,25 +1581,24 @@ class Report():
                     continue
 
         if args.grch37:
-            lines.append((
-                f'primer-designer version: {VERSION} using dbSNP 144 for '
-                'SNP checking, and human reference GRCh37.'
-            ))
+            ref = 'GRCh37'
         else:
-            lines.append((
-                f'primer-designer version: {VERSION} using dbSNP 150 for '
-                'SNP checking, and human reference GRCh38.'
-            ))
+            ref = 'GRCh38'
+
+        lines.append('')
+        lines.append(f'primer-designer version: {VERSION}')
+        lines.append(f'dbSNP file used: {Path(DBSNP).stem}')
+        lines.append(f'Human reference version: {ref} ({Path(REFERENCE).stem})')
 
         # add final footer text, split over lines as line breaks refused
         # to work and I don't care enough to debug reportlab
         lines.append('')
         lines.append((
             'Common SNP annotation: A common SNP is one that has at least one '
-            '1000Genomes population with a minor allele '
+            '1000 Genomes population with a minor allele '
         ))
         lines.append((  
-            'of frequency >= % and for which 2 or more founders contribute to '
+            'of frequency >= 1% and for which 2 or more founders contribute to '
             'that minor allele frequency.'
         ))
 
