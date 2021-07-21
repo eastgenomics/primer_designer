@@ -136,7 +136,7 @@ class Fusion():
         in case two same sides relative to breakpoint are added.
 
         Args:
-            - seqs_dict (list): list of dicts for each sequence
+            - seqs_dict (dict): dict of dicts for each sequence
         Returns:
             - target_sequence (str): both target sequences joined
             - marked_sequence (str): both marked sequences joined
@@ -151,8 +151,8 @@ class Fusion():
         # used in pick_best_primer() as well as printing coordinates in
         # the right order
 
-        for i in range(0, len(seqs_dict)):
-
+        for i, _ in enumerate(seqs_dict):
+            # check each dict and tag appropriately
             if seqs_dict[i]['SIDE'] == ">" and seqs_dict[i]['STRAND'] == "1":
                 # add DARK_SIDE tag same as side
                 seqs_dict[i]['DARK_SIDE'] = ">"
@@ -1256,8 +1256,6 @@ class Report():
             if name == "RIGHT_0":
                 y_offset -= 8
 
-            
-
             # set vars to write into report
             gc = float(primer3_results['PRIMER_' + name + '_GC_PERCENT'])
             tm = float(primer3_results['PRIMER_' + name + '_TM'])
@@ -1567,7 +1565,7 @@ class Report():
             lines.append((
                 f"Primer design report for a fusion between "
                 f"{seqs[0]['CHR']}:{seqs[0]['POS']} and "
-                f"{seqs[1]['CHR']}:{seqs[0]['POS']}"
+                f"{seqs[1]['CHR']}:{seqs[1]['POS']}"
             ))
 
             for regionid, region_dict in seqs.items():
