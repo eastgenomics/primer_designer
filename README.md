@@ -32,7 +32,7 @@ n.b. index files for reference genome and dbSNP vcf need generating with both `s
 - smalt index outputs 2 files:
   - `.sma`: compressed set of reference sequences
   - `.smi`: hash index
-- smalt manual available [here](ftp://ftp.sanger.ac.uk/pub/resources/software/smalt/smalt-manual-0.7.4.pdf)
+- smalt manual available here: ftp://ftp.sanger.ac.uk/pub/resources/software/smalt/smalt-manual-0.7.4.pdf
 - full required file list:
   - {reference_genome}.fasta
   - {reference_genome}.fasta.fai
@@ -55,20 +55,23 @@ primer3, smalt and samtools are required to be installed and on path.
 Example:
 
 ```bash
-./primer_designer_region.py -c 1 -p 75761161 --grch37 #outputs a PDF report around chr 9 pos 12345678 
-./primer_designer_region.py -c 9 -r 12345678 12346678 --grch37 #outputs a PDF report for a range
-./primer_designer_region.py -b 9:123456789:b:1_8:12345678:a:-1 --grch37 -t #outputs a PDF and TXT reports for a fusion   
+./primer_designer_region.py -c 1 -p 75761161 --grch37 # outputs a PDF report around chr 9 pos 12345678 
+./primer_designer_region.py -c 9 -r 12345678 12346678 --grch37 # outputs a PDF report for a range
+./primer_designer_region.py --fusion --b1 9:123456789:b:1 --b2 8:12345678:a:-1 --grch37 -t # outputs a PDF and TXT reports for a fusion   
 ```
 -c 
   (required for the position and range only) Specifies the chromosome  
 
--p | -r | -b
-  (required) Specifies the type of 
+-p | -r |
+  Specifies the type of 
 
     -p - Specifies position of a base around which primers need to be designed  
     -r - Specifies range of nucleotides around which primers need to be designed
-    -b - Specifies breakpoints locations to design primers for fusion genes; requires the input to be in this format:
-         chr1:pos:side:strand_chr2:pos:side:strand, where side is after (a) or before (b) the breakpoint. The position is included in all of the calculations. 
+    
+--fusion
+    Specifies breakpoints locations to design primers for fusion genes; requires passing both --b1 AND --b2 in the format:
+         chr:pos:side:strand, where side is after (a) or before (b) the breakpoint. The position is included in all of the calculations. 
+    e.g. --fusion --b1 5:123456:a:1 --b2 5:456789:b:1
 
 --grch37 | --grch38
   (required) Specifies the reference genome. 
