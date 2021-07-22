@@ -32,7 +32,7 @@ FLANK = 500
 FUSION = False
 TARGET_LEAD = 50
 NR_PRIMERS = 4
-ALLOWED_MISMATCHES = 0
+ALLOWED_MISMATCHES = 4
 MAX_MAPPINGS = 5
 REFERENCE = None  # depends on the chosen reference genome
 DBSNP = None  # depends on the chosen reference genome
@@ -862,6 +862,9 @@ class Primer3():
 
                 if mismatch > ALLOWED_MISMATCHES:
                     # too many mismatches, drop
+                    print(name)
+                    print(mismatch)
+                    print('')
                     continue
 
                 if name not in seq_dict:
@@ -1538,7 +1541,7 @@ class Report():
         """
         lines = self.method_blurb(args, seqs)
 
-        top_offset = 120
+        top_offset = 140
 
         for line in lines:
             c.drawString(40, top_offset, line)
@@ -1598,6 +1601,11 @@ class Report():
         )
         smalt_version = smalt_version.stdout.decode('utf-8').split()[8]
 
+        # record cmd line args used, split into 3 per line to limit length
+        cmd_args = []
+        [cmd_args.append(f'--{k} {v}') for k, v in vars(args).items() if v][0]
+        cmd_args = ['; '.join(cmd_args[i:i + 3]) for i in range(0, len(cmd_args), 3)]
+
         lines.append('')
         lines.append(
             f'Created at {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}'
@@ -1622,6 +1630,9 @@ class Report():
         lines.append(f'primer3 version: {primer3_version}')
         lines.append(f'samtools version: {samtools_version}')
         lines.append(f'smalt version: {smalt_version}')
+        lines.append(f'cmd line args used: {cmd_args[0]}')
+        # write extra cmd line args with indent for nice alignment
+        [lines.append(f'{" " * 20}{x}') for x in cmd_args[1:]]
 
         return lines
 
@@ -1716,8 +1727,11 @@ def parse_args():
         '--b2', help="second region to design primers for"
     )
 
-    parser.add_argument('-o', '--output')
-    parser.add_argument('-f', '--flank', type=int)
+    parser.add_argument('-o', '--output', help='output filename prefix')
+    parser.add_argument(
+        '-f', '--flank', type=int,
+        help='flank region to design within (default: 500)'
+    )
     parser.add_argument(
         '-t', '--text_output', action='store_true',
         help='Saves the report in txt file including the consensus sequence'
@@ -1909,10 +1923,11 @@ def main():
 
     # generate output PDF report, write to output dir in folder
     output_dir = f'{os.path.dirname(os.path.dirname(os.path.abspath(__file__)))}/output/'
-    filename = f'{output_dir}{re.sub("[<>:]", "_", region_id)}'
 
     if args.output:
         filename = f'{output_dir}{args.output}'
+    else:
+        filename = f'{output_dir}{re.sub("[<>:]", "_", region_id)}'
 
     if args.text_output:
         filename = f'{output_dir}{filename}.txt'
