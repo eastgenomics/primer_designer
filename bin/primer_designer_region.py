@@ -8,6 +8,7 @@ Made even better: Jethro Rainford (23 Mar 2021)
 '''
 import argparse
 from configparser import ConfigParser
+from datetime import datetime
 import errno
 import os
 from pathlib import Path
@@ -31,7 +32,7 @@ FLANK = 500
 FUSION = False
 TARGET_LEAD = 50
 NR_PRIMERS = 4
-ALLOWED_MISMATCHES = 5
+ALLOWED_MISMATCHES = 0
 MAX_MAPPINGS = 5
 REFERENCE = None  # depends on the chosen reference genome
 DBSNP = None  # depends on the chosen reference genome
@@ -946,8 +947,6 @@ class Primer3():
             uniq_chr = []
             mis_chr = []
 
-            print(k, v)
-
             for pos, chrom in enumerate(seq_dict[k]['CHR']):
                 # same chromosome, position in range and no mismatch
                 if (
@@ -1250,15 +1249,12 @@ class Report():
         c.line(40, y_offset, width - 40, y_offset + 2)
         y_offset -= 8
 
-        primer_seqs = []
-        print(passed_primers)
-        print(' ')
         for primer in sorted(passed_primers):
             # loop over dict of primers
             name = primer
             name = re.sub(r'PRIMER_', '', name)
             name = re.sub(r'_SEQUENCE', '', name)
-            print(primer)
+
             if name == "RIGHT_0":
                 y_offset -= 8
 
@@ -1466,12 +1462,6 @@ class Report():
 
             x_offset = 40
 
-            # print('p line ', p_line)
-            # print('m line ', m_line_pad)
-            # print('p line len ', len(p_line))
-            # print('m line len ', len(m_line))
-            # print(tagged_string[i: i + 80])
-
             for k in range(0, len(p_line)):
                 # Setting colour of the SNPs and the indicated position
                 if m_line[k] == "X":
@@ -1548,7 +1538,7 @@ class Report():
         """
         lines = self.method_blurb(args, seqs)
 
-        top_offset = 80
+        top_offset = 120
 
         for line in lines:
             c.drawString(40, top_offset, line)
@@ -1589,8 +1579,29 @@ class Report():
         else:
             ref = 'GRCh38'
 
+        # get versions of tools used
+        primer3_version = subprocess.run(
+            f"primer3_core --about", shell=True, check=True,
+            stdout=subprocess.PIPE
+        )
+        primer3_version = primer3_version.stdout.decode('utf-8').split()[-1]
+
+        samtools_version = subprocess.run(
+            f"samtools --version", shell=True, check=True,
+            stdout=subprocess.PIPE
+        )
+        samtools_version = samtools_version.stdout.decode('utf-8').split()[1]
+
+        smalt_version = subprocess.run(
+            f"smalt version", shell=True, check=True,
+            stdout=subprocess.PIPE
+        )
+        smalt_version = smalt_version.stdout.decode('utf-8').split()[8]
+
         lines.append('')
-        lines.append(f'primer-designer version: {VERSION}')
+        lines.append(
+            f'Created at {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}'
+        )
         lines.append(f'dbSNP file used: {Path(DBSNP).stem}')
         lines.append(f'Human reference version: {ref} ({Path(REFERENCE).stem})')
 
@@ -1605,6 +1616,12 @@ class Report():
             'of frequency >= 1% and for which 2 or more founders contribute to '
             'that minor allele frequency.'
         ))
+
+        lines.append('')
+        lines.append(f'primer-designer version: {VERSION}')
+        lines.append(f'primer3 version: {primer3_version}')
+        lines.append(f'samtools version: {samtools_version}')
+        lines.append(f'smalt version: {smalt_version}')
 
         return lines
 
