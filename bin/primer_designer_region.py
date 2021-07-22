@@ -842,7 +842,7 @@ class Primer3():
             )
 
         # run smalt to map primer sequences to reference
-        cmd = f"smalt map  -d -1 {ref_file} {primers_file} > {smalt_out}"
+        cmd = f"smalt map -d -1 {ref_file} {primers_file} > {smalt_out}"
         subprocess.call(cmd, shell=True)
 
         seq_dict = {}
@@ -1185,7 +1185,7 @@ class Report():
         return rev_str
 
     def pretty_pdf_primer_data(
-            self, c, y_offset, primer3_results, passed_primers, width,
+            self, c, y_offset, primer3_results, passed_primers, width, args,
             FUSION=False, chrom=None, startpos=None, endpos=None,
             coord_dict=None):
         """
@@ -1199,6 +1199,11 @@ class Report():
         c.line(40, y_offset, width - 40, y_offset + 2)
         y_offset -= 8
 
+        if args.grch37:
+            ref = 'GRCh37'
+        else:
+            ref = 'GRCh38'
+
         if FUSION:
             # fusion header
             c.drawString(
@@ -1206,8 +1211,8 @@ class Report():
                 (
                     f"Primer design report for a fusion between chr: "
                     f"{coord_dict[0]['CHR']} position: {coord_dict[0]['POS']} "
-                    f" and chr: {coord_dict[1]['CHR']} position: "
-                    f"{coord_dict[1]['POS']} "
+                    f"and chr: {coord_dict[1]['CHR']} position: "
+                    f"{coord_dict[1]['POS']} - ({ref})"
                 )
             )
         else:
@@ -1215,15 +1220,16 @@ class Report():
             if startpos == endpos:
                 c.drawString(
                     40,
-                    y_offset,
-                    "Primer design report for chr {} position: {}".format(
-                        chrom,
-                        startpos))
+                    y_offset, (
+                        f"Primer design report for chr {chrom} position: "
+                        f"{startpos} - ({ref})"
+                    )
+                )
             else:
                 c.drawString(
-                    40, y_offset,
-                    "Primer design report for chr: {} range: {}-{}".format(
-                        chrom, startpos, endpos
+                    40, y_offset, (
+                        f"Primer design report for chr: {chrom} range: "
+                        f"{startpos}-{endpos} - ({ref})"
                     )
                 )
 
@@ -1672,17 +1678,25 @@ def parse_args():
         )
     )
     parser.add_argument('-c', '--chr')
+
     # only the position or range can be given
-    group = parser.add_mutually_exclusive_group(required=True)
+    group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument('-p', '--pos', type=int)
     group.add_argument('-r', '--range', nargs=2)
-    group.add_argument(
-        '-b', '--blend', type=str,
+
+    parser.add_argument(
+        '--fusion', action="store_true",
         help=(
-            'The input must be in this format chr1:pos:side:strand_chr2:pos:'
-            'side:strand, where side = a or b (after or before breakpoint) '
-            'and strand = 1 or -1'
+            "Design primers around breakpoint. --b1 and --b2 must be specified "
+            "and in this format chr:pos:side:strand, where side = a or b "
+            "(after or before breakpoint) and strand = 1 or -1"
         )
+    )
+    parser.add_argument(
+        '--b1', help="first region to design primers for"
+    )
+    parser.add_argument(
+        '--b2', help="second region to design primers for"
     )
 
     parser.add_argument('-o', '--output')
@@ -1702,8 +1716,32 @@ def parse_args():
 
     if not args.grch37 and not args.grch38:
         print("Please select a reference genome to use")
-        parser.parse_args('-h')
+        print('')
+        parser.print_help()
         sys.exit()
+
+    if args.chr and not (args.pos or args.range):
+        print('ERROR: chromsome given with no position or range')
+        print('')
+        parser.print_help()
+        sys.exit()
+
+    if args.fusion and not (args.b1 and args.b2):
+        print('ERROR: both --b1 AND --b2 mujst be given for fusion designs.')
+        print('')
+        parser.print_help()
+        sys.exit()
+
+    if args.fusion:
+        # check b1 and b2 in correct format
+        format_regex = '[A-Za-z0-9]*:[0-9]*:[ab]:[-]?[0-9]'
+        b1_match = re.match(format_regex, args.b1).group(0)
+        b2_match = re.match(format_regex, args.b2).group(0)
+
+        assert args.b1 == b1_match and args.b2 == b2_match, (
+            'ERROR: b1 and / or are in the wrong format. Expected '
+            f'chr:pos:side:strand. b1 = {args.b1}. b2 = {args.b2}'
+        )
 
     return args
 
@@ -1777,9 +1815,8 @@ def main():
         startpos, endpos = [int(x) for x in args.range]
         seqs = None
 
-    elif args.blend:
-        # blend? - think this is for fusions
-        fusion_coords = args.blend
+    elif args.fusion:
+        fusion_coords = f'{args.b1}_{args.b2}'
         FUSION = True
         chrom = None
         startpos = None
@@ -1789,6 +1826,7 @@ def main():
         startpos = args.pos
         endpos = args.pos
         seqs = None
+
 
     # Sequence retrieval and markup
 
@@ -1870,7 +1908,7 @@ def main():
         # fusion report, pass required formatting
         c.setFont('mono', 7)
         top_offset = report.pretty_pdf_primer_data(
-            c, height - 30, primer3_results, passed_primers, width,
+            c, height - 30, primer3_results, passed_primers, width, args,
             FUSION, chrom, startpos, endpos, seqs
         )
 
@@ -1885,8 +1923,8 @@ def main():
         # normal primer report formatting
         c.setFont('mono', 6)
         top_offset = report.pretty_pdf_primer_data(
-            c, height - 30, primer3_results, passed_primers, width, FUSION,
-            chrom, startpos, endpos
+            c, height - 30, primer3_results, passed_primers, width, args,
+            FUSION, chrom, startpos, endpos
         )
         c.setFont('mono', 8)
         report.pretty_pdf_mappings(
