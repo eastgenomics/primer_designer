@@ -32,7 +32,7 @@ FLANK = 500
 FUSION = False
 TARGET_LEAD = 50
 NR_PRIMERS = 4
-ALLOWED_MISMATCHES = 4
+ALLOWED_MISMATCHES = 5
 MAX_MAPPINGS = 5
 REFERENCE = None  # depends on the chosen reference genome
 DBSNP = None  # depends on the chosen reference genome
@@ -1145,7 +1145,10 @@ class Report():
         mappings = []
 
         for i in range(0, len(seq)):
-
+            # for each primer checks at each base of target sequence if the
+            # following bases match the primer sequence, super crude way of
+            # 'mapping' the primer seuqnece to know where in the target
+            # region it is for adding <<< to the report
             for primer_set in primers:
                 (name, primer) = primer_set
                 primer_len = len(primer)
@@ -1773,8 +1776,12 @@ def parse_args():
     if args.fusion:
         # check b1 and b2 in correct format
         format_regex = '[A-Za-z0-9]*:[0-9]*:[ab]:[-]?[0-9]'
-        b1_match = re.match(format_regex, args.b1).group(0)
-        b2_match = re.match(format_regex, args.b2).group(0)
+        b1_match = re.match(format_regex, args.b1)
+        b2_match = re.match(format_regex, args.b2)
+
+        if b1_match and b2_match:
+            b1_match = b1_match.group(0)
+            b2_match = b2_match.group(0)
 
         assert args.b1 == b1_match and args.b2 == b2_match, (
             'ERROR: b1 and / or are in the wrong format. Expected '
