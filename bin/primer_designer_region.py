@@ -1677,14 +1677,14 @@ def parse_args():
             'variables if not used.'
         )
     )
-    parser.add_argument('-c', '--chr')
+    chr_arg = parser.add_argument('-c', '--chr')
 
     # only the position or range can be given
     group = parser.add_mutually_exclusive_group(required=False)
     group.add_argument('-p', '--pos', type=int)
     group.add_argument('-r', '--range', nargs=2)
 
-    parser.add_argument(
+    fusion_arg = parser.add_argument(
         '--fusion', action="store_true",
         help=(
             "Design primers around breakpoint. --b1 and --b2 must be specified "
@@ -1705,7 +1705,7 @@ def parse_args():
         '-t', '--text_output', action='store_true',
         help='Saves the report in txt file including the consensus sequence'
     )
-    parser.add_argument(
+    ref_arg = parser.add_argument(
         '--grch37', help='use GRCh37 as reference genome', action="store_true"
     )
     parser.add_argument(
@@ -1714,23 +1714,30 @@ def parse_args():
 
     args = parser.parse_args()
 
-    if not args.grch37 and not args.grch38:
-        print("Please select a reference genome to use")
-        print('')
+    if not args.grch37 and not args.grch38:        
         parser.print_help()
-        sys.exit()
+        print('')
+
+        raise argparse.ArgumentError(
+            ref_arg, 'Please select a reference genome to use'
+        )
+
 
     if args.chr and not (args.pos or args.range):
-        print('ERROR: chromsome given with no position or range')
-        print('')
         parser.print_help()
-        sys.exit()
+        print('')
+
+        raise argparse.ArgumentError(
+            chr_arg, 'chromsome given with no position or range'
+        )
 
     if args.fusion and not (args.b1 and args.b2):
-        print('ERROR: both --b1 AND --b2 mujst be given for fusion designs.')
-        print('')
         parser.print_help()
-        sys.exit()
+        print('')
+
+        raise argparse.ArgumentError(
+            fusion_arg, 'both --b1 AND --b2 mujst be given for fusion designs.'
+        )
 
     if args.fusion:
         # check b1 and b2 in correct format
