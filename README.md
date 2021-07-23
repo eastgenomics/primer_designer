@@ -27,8 +27,8 @@ Key highlights:
 
 n.b. index files for reference genome and dbSNP vcf need generating with both `samtools faidx` and `smalt index INDEX REFSEQ-FILE`
 
-- default setting for smalt index: -k 13 -s 13, where k is word length and s is step size
-- recommended setting for 100bp Illumina read is -k 20 -s 13
+- default setting for smalt index: -k 13 -s 13, where k is word length and s is stepsiz
+- recommended setting for 11-24 base reads (i.e. primers): `-k 11 -s 2`, the use of wordlen and stepsiz affects memory requirement, speed, sensitivity and accuracy of mapping, check manual for further details
 - smalt index outputs 2 files:
   - `.sma`: compressed set of reference sequences
   - `.smi`: hash index
