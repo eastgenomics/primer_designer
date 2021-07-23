@@ -69,7 +69,7 @@ Example:
     -r - Specifies range of nucleotides around which primers need to be designed
     
 --fusion
-    Specifies breakpoints locations to design primers for fusion genes; requires passing both --b1 AND --b2 in the format:
+    Specifies breakpoints locations to design primers for fusion genes; requires passing both --b1 AND --b2 each in the format:
          chr:pos:side:strand, where side is after (a) or before (b) the breakpoint. The position is included in all of the calculations. 
     e.g. --fusion --b1 5:123456:a:1 --b2 5:456789:b:1
 
@@ -105,7 +105,7 @@ docker run
   --env REF_37=/reference_files/grch37/human_g1k_v37.fasta 
   --env DBSNP_37=/reference_files/dbsnp_37.vcf.gz 
   primer_designer 
-  python3 primer_designer_region.py -c 8 -p 21988118 --grch37
+  python3 bin/primer_designer_region.py -c 8 -p 21988118 --grch37
 ```
 In the above example a local dir `reference_files/` contains the files and is mounted in the container at `/reference_files`. The environment variables `REF_37` and `DBSNP_37` are passed with paths to the files relative from the reference files dir.
 
