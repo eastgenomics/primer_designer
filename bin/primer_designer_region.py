@@ -843,7 +843,7 @@ class Primer3():
             )
 
         # run smalt to map primer sequences to reference
-        cmd = f"smalt map -d -1 {ref_file} {primers_file} > {smalt_out}"
+        cmd = f"smalt map -x -d -1 {ref_file} {primers_file} > {smalt_out}"
         subprocess.call(cmd, shell=True)
 
         seq_dict = {}
