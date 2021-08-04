@@ -37,4 +37,8 @@ ENV PATH="/home/software/primer3-2.3.7/src:$PATH"
 ENV PATH="/home/software/samtools/bin:$PATH"
 ENV PATH="/home/software/htslib/bin:$PATH"
 
+# add alias to primer_designer_region.py as primer_design to simplify calling
+RUN printf '#!/bin/bash\npython3 /home/primer_designer/bin/primer_designer_region.py "$@"' > /usr/bin/primer_designer && \
+    chmod +x /usr/bin/primer_designer
+
 WORKDIR /home/primer_designer

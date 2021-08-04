@@ -98,13 +98,12 @@ A dockerfile is provided that allows for building a full working image of primer
 Reference files must still be provided as before, either via a config file or environment variables. It is advised to mount the volume containing these when running and pass the paths relative to the file location within the mounted volume, i.e:
 
 ```
-# running primer designer from docker
-docker run 
-  -v /home/$USER/reference_files:/reference_files 
-  -v $PWD:/home/primer_designer/output 
-  --env-file {config-file)
-  primer_designer 
-  python3 bin/primer_designer_region.py -c 8 -p 21988118 --grch37
+docker run \
+-v /home/$USER/reference_files:/reference_files \
+-v $PWD:/home/primer_designer/output \
+--env-file {config-file) \
+{image-name}:{tag}
+primer_designer -c 8 -p 21988118 --grch37
 ```
 In the above example a local dir `/home/$USER/reference_files/` contains the reference files and is mounted in the container at `/reference_files`. The environment variables in `{config-file}` are passed with paths to the files relative from the reference files dir in the container (i.e. `REF37=/reference_files/grch37.fa`).
 
