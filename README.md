@@ -55,9 +55,9 @@ primer3, smalt and samtools are required to be installed and on path.
 Example:
 
 ```bash
-./primer_designer_region.py -c 1 -p 75761161 --grch37 # outputs a PDF report around chr 9 pos 12345678 
-./primer_designer_region.py -c 9 -r 12345678 12346678 --grch37 # outputs a PDF report for a range
-./primer_designer_region.py --fusion --b1 9:123456789:b:1 --b2 8:12345678:a:-1 --grch37 -t # outputs a PDF and TXT reports for a fusion   
+./primer_designer_region.py -c 1 -p 75761161 --grch37  --config {config-file }# outputs a PDF report around chr 9 pos 12345678 
+./primer_designer_region.py -c 9 -r 12345678 12346678 --grch37 --config {config-file # outputs a PDF report for a range
+./primer_designer_region.py --fusion --b1 9:123456789:b:1 --b2 8:12345678:a:-1 --grch37 --config {config-file # outputs a PDF for fusion design 
 ```
 -c 
   (required for the position and range only) Specifies the chromosome  
@@ -69,9 +69,9 @@ Example:
     -r - Specifies range of nucleotides around which primers need to be designed
     
 --fusion
-    Specifies breakpoints locations to design primers for fusion genes; requires passing both --b1 AND --b2 each in the format:
-         chr:pos:side:strand, where side is after (a) or before (b) the breakpoint. The position is included in all of the calculations. 
-    e.g. --fusion --b1 5:123456:a:1 --b2 5:456789:b:1
+    Specifies breakpoints locations to design primers for fusion genes; requires passing both `--b1` AND `--b2` each in the format:
+         `chr:pos:side:strand`, where side is after (a) or before (b) the breakpoint. The position is included in all of the calculations. 
+    e.g. `--fusion --b1 5:123456:b:1 --b2 5:456789:a:1`
 
 --grch37 | --grch38
   (required) Specifies the reference genome. 
@@ -102,12 +102,11 @@ Reference files must still be provided as before, either via a config file or en
 docker run 
   -v /home/$USER/reference_files:/reference_files 
   -v $PWD:/home/primer_designer/output 
-  --env REF_37=/reference_files/grch37/human_g1k_v37.fasta 
-  --env DBSNP_37=/reference_files/dbsnp_37.vcf.gz 
+  --env-file {config-file)
   primer_designer 
   python3 bin/primer_designer_region.py -c 8 -p 21988118 --grch37
 ```
-In the above example a local dir `reference_files/` contains the files and is mounted in the container at `/reference_files`. The environment variables `REF_37` and `DBSNP_37` are passed with paths to the files relative from the reference files dir.
+In the above example a local dir `/home/$USER/reference_files/` contains the reference files and is mounted in the container at `/reference_files`. The environment variables in `{config-file}` are passed with paths to the files relative from the reference files dir in the container (i.e. `REF37=/reference_files/grch37.fa`).
 
 In addition, the output PDF report will be written to `/home/primer_designer/output/` within the container, and therefore to access this outside the container a volume should be mounted to where you want the report on the local system. To output the report to the current dir it should be passed as in the above example: `-v $PWD:/home/primer_designer/output`
 ***
