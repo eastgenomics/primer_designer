@@ -1,0 +1,6 @@
+config.py
+primer_designer.cfg
+*.pdf
+*.smalt
+*.primer3
+*.fasta
