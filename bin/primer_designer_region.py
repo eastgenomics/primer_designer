@@ -13,12 +13,9 @@ import errno
 import os
 from pathlib import Path
 import re
-import shlex
 from shutil import which
 import subprocess
-import sys
 
-import reportlab
 from reportlab.pdfbase.pdfmetrics import stringWidth
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
@@ -1770,7 +1767,7 @@ def parse_args():
         print('')
 
         raise argparse.ArgumentError(
-            fusion_arg, 'both --b1 AND --b2 mujst be given for fusion designs.'
+            fusion_arg, 'both --b1 AND --b2 must be given for fusion designs.'
         )
 
     if args.fusion:
