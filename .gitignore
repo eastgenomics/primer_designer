@@ -4,3 +4,4 @@ primer_designer.cfg
 *.smalt
 *.primer3
 *.fasta
+test/reference_files

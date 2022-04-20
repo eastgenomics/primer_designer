@@ -65,7 +65,7 @@ def run_test(args, genes_df):
             "--env REF_37=/reference_files/grch37/human_g1k_v37.fasta "
             "--env DBSNP_37=/reference_files/grch37/dbsnp_grch37_common_all_20180423.vcf.gz "
             "primer_designer "
-            f"python3 primer_designer_region.py -c {chr} -p {random_pos} --grch37"
+            f"python3 bin/primer_designer_region.py -c {chr} -p {random_pos} --grch37"
         )
 
         # call primer designer docker to generate report
