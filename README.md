@@ -17,7 +17,7 @@ Key highlights:
 
 ## Requirements
 
-- python >=3.6 
+- python >=3.6
 - [primer3][primer3-url] (2.3.7)
 - [smalt][smalt-url] (0.7.6)
 - [samtools][samtools-url] (1.5)
@@ -39,12 +39,12 @@ n.b. index files for reference genome and dbSNP vcf need generating with both `s
   - {reference_genome}.fasta.sma
   - {reference_genome}.fasta.smi
   - {dbsnp}.vcf.gz
-  - {dbsnp}.vcf.gz.tbi  
+  - {dbsnp}.vcf.gz.tbi
 
 
 ***
 
-## General Usage 
+## General Usage
 
 For usage with Docker, please see below.
 
@@ -55,41 +55,40 @@ primer3, smalt and samtools are required to be installed and on path.
 Example:
 
 ```bash
-./primer_designer_region.py -c 1 -p 75761161 --grch37  --config {config-file }# outputs a PDF report around chr 9 pos 12345678 
+./primer_designer_region.py -c 1 -p 75761161 --grch37  --config {config-file }# outputs a PDF report around chr 9 pos 12345678
 ./primer_designer_region.py -c 9 -r 12345678 12346678 --grch37 --config {config-file # outputs a PDF report for a range
-./primer_designer_region.py --fusion --b1 9:123456789:b:1 --b2 8:12345678:a:-1 --grch37 --config {config-file # outputs a PDF for fusion design 
+./primer_designer_region.py --fusion --b1 9:123456789:b:1 --b2 8:12345678:a:-1 --grch37 --config {config-file # outputs a PDF for fusion design
 ```
--c 
-  (required for the position and range only) Specifies the chromosome  
+-c
+  (required for the position and range only) Specifies the chromosome
 
 -p | -r |
-  Specifies the type of 
+  Specifies the type of
 
-    -p - Specifies position of a base around which primers need to be designed  
+    -p - Specifies position of a base around which primers need to be designed
     -r - Specifies range of nucleotides around which primers need to be designed
-    
+
 --fusion
     Specifies breakpoints locations to design primers for fusion genes; requires passing both `--b1` AND `--b2` each in the format:
-         `chr:pos:side:strand`, where side is after (a) or before (b) the breakpoint. The position is included in all of the calculations. 
+         `chr:pos:side:strand`, where side is after (a) or before (b) the breakpoint. The position is included in all of the calculations.
     e.g. `--fusion --b1 5:123456:b:1 --b2 5:456789:a:1`
 
 --grch37 | --grch38
-  (required) Specifies the reference genome. 
+  (required) Specifies the reference genome.
 
--o 
+-o
   (optional) Output suffix for naming
 
--t 
-  (optional) A flag to output the report in .txt format 
+-t
+  (optional) A flag to output the report in .txt format
 
--f 
+-f
   (optional) A flag to change the FLANK region used to design primers around. It is the number of bases before and after the indicated position.
 
 --config (optional) Config file containing paths to required reference files, if not given these MUST be provided as environment variables
 <br></br>
 
-Primer designer may also be called via the `bulk_design.py` script, this allows for passing a `.txt` file of multiple regions at once and outputs a `.zip` file of designer primer reports.
-*** 
+***
 
 ## Docker Usage
 
@@ -111,18 +110,18 @@ In addition, the output PDF report will be written to `/home/primer_designer/out
 ***
 
 
-## Description 
+## Description
 For a detailed description of how to run the script and what has been done for fusion genes please read this [Confluence page][fusion-page-url]
 
-## Authors And Acknowledgement 
+## Authors And Acknowledgement
 
-* Kim Brugger 
+* Kim Brugger
 
-## Maintainers 
+## Maintainers
 
-Current maintainers: 
+Current maintainers:
 
-* ~~Nikita Povarnitsyn~~ 
+* ~~Nikita Povarnitsyn~~
 * Jethro Rainford (eastgenomics)
 
 ## Contributing
