@@ -36,6 +36,7 @@ def run_test(args, genes_df):
         - genes_df (df): df of bed file
     """
     # get random sample of rows
+    args.total = 1 if args.total == None else args.total
     random_sample = genes_df.sample(n=args.total)
 
     # list to gather errors in and write to file
@@ -44,6 +45,7 @@ def run_test(args, genes_df):
 
     # path to output directory
     test_out = f'{os.path.dirname(os.path.abspath(__file__))}/test_output/'
+    print(f'Output Directory: {test_out}')
 
     counter = 1
     for _, row in random_sample.iterrows():
@@ -60,12 +62,13 @@ def run_test(args, genes_df):
 
         cmd = (
             "docker run "
-            "-v /home/$USER/reference_files:/reference_files "
-            f"-v {test_out}:/home/primer_designer/output "
-            "--env REF_37=/reference_files/grch37/human_g1k_v37.fasta "
-            "--env DBSNP_37=/reference_files/grch37/dbsnp_grch37_common_all_20180423.vcf.gz "
+            "-v /home/jason/github/primer_designer/test/reference_files:/reference_files "
+            f"-v /home/jason/github/primer_designer/test/test_output:/home/primer_designer/output "
+            "--env REF_37=/reference_files/grch37/hs37d5.fa "
+            "--env SNP_37=/reference_files/grch37/gnomad.genomes.r2.0.1.sites.noVEP.AF-0.01.infoRemoved.vcf.gz "
+            "--env PRIMER_VERSION=2.0.0 --env SNP_VERSION=2.0.1 "
             "primer_designer "
-            f"python3 bin/primer_designer_region.py -c {chr} -p {random_pos} --grch37"
+            f"python bin/primer_designer_region.py --chr {chr} --pos {random_pos} --grch37"
         )
 
         # call primer designer docker to generate report
@@ -83,23 +86,24 @@ def run_test(args, genes_df):
             print('Oh no, an error, adding to file')
             errors.append(f"Error designing primers for {chr}:{random_pos}")
             stderr = exc.output.decode()
-            errors.append(stderr)
+            # errors.append(stderr)
+            print(stderr)
 
         counter += 1
 
-    with open('test.log', 'w') as log_file:
-        # write a log of everything generated
-        for log in logs:
-            log_file.write(str(log))
-            log_file.write('\n')
+    # with open('test.log', 'w') as log_file:
+    #     # write a log of everything generated
+    #     for log in logs:
+    #         log_file.write(str(log))
+    #         log_file.write('\n')
 
-    if len(errors) > 0:
-        # found some errors, write to file
-        with open('test_errors.txt', 'w') as err_file:
-            for error in errors:
-                for line in error:
-                    err_file.write(str(line))
-                err_file.write('\n')
+    # if len(errors) > 0:
+    #     # found some errors, write to file
+    #     with open('test_errors.txt', 'w') as err_file:
+    #         for error in errors:
+    #             for line in error:
+    #                 err_file.write(str(line))
+    #             err_file.write('\n')
 
 
 def parse_args():
