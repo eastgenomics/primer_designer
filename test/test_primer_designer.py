@@ -62,13 +62,15 @@ def run_test(args, genes_df):
 
         cmd = (
             "docker run "
-            "-v /home/jason/github/primer_designer/test/reference_files:/reference_files "
+            "-v /home/jason/github/primer_designer/test/reference_files:/reference "
             f"-v /home/jason/github/primer_designer/test/test_output:/home/primer_designer/output "
-            "--env REF_37=/reference_files/grch37/hs37d5.fa "
-            "--env SNP_37=/reference_files/grch37/gnomad.genomes.r2.0.1.sites.noVEP.AF-0.01.infoRemoved.vcf.gz "
-            "--env PRIMER_VERSION=2.0.0 --env SNP_VERSION=2.0.1 "
-            "primer_designer "
-            f"python bin/primer_designer_region.py --chr {chr} --pos {random_pos} --grch37"
+            "--env REF_37=/reference/grch37/hs37d5.fa "
+            "--env SNP_37=/reference/grch37/gnomad.genomes.r2.0.1.sites.noVEP.AF-0.01.infoRemoved.vcf.gz "
+            "--env PRIMER_VERSION=2.0.0 "
+            "--env SNP37_VERSION=2.0.1 "
+            "--env SNP37_DB=gnomad "
+            "primer_designer:2.0.1 "
+            f"python -u bin/primer_designer_region.py --chr {chr} --pos {random_pos} --grch37"
         )
 
         # call primer designer docker to generate report
@@ -86,25 +88,9 @@ def run_test(args, genes_df):
             print('Oh no, an error, adding to file')
             errors.append(f"Error designing primers for {chr}:{random_pos}")
             stderr = exc.output.decode()
-            # errors.append(stderr)
-            print(stderr)
+            print('STDERR', stderr)
 
         counter += 1
-
-    # with open('test.log', 'w') as log_file:
-    #     # write a log of everything generated
-    #     for log in logs:
-    #         log_file.write(str(log))
-    #         log_file.write('\n')
-
-    # if len(errors) > 0:
-    #     # found some errors, write to file
-    #     with open('test_errors.txt', 'w') as err_file:
-    #         for error in errors:
-    #             for line in error:
-    #                 err_file.write(str(line))
-    #             err_file.write('\n')
-
 
 def parse_args():
     parser = argparse.ArgumentParser()

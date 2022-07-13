@@ -1614,11 +1614,11 @@ class Report():
         # to work and I don't care enough to debug reportlab
         lines.append('')
         lines.append((
-            'Common SNP annotation: A common SNP is one that has allele frequency (AF) '
+            'Common SNP annotation: A common SNP is one that has (minor) allele frequency '
             'higher than or equal to 1%'
         ))
         lines.append((
-            f'in the gnomad database version {SNP_VERSION}.'
+            f'in the {SNP_DB} database version {SNP_VERSION}'
         ))
 
         lines.append('')
@@ -1802,24 +1802,31 @@ def load_config(args):
         if args.grch37:
             REFERENCE = config['REFERENCE']['REF_37']
             SNP = config['REFERENCE']['SNP_37']
+            SNP_VERSION = config['REFERENCE']['SNP37_VERSION']
+            SNP_DB = config['REFERENCE']['SNP37_DB']
         else:
             REFERENCE = config['REFERENCE']['REF_38']
-            SNP = config['REFERENCE']['SNP_37']
+            SNP = config['REFERENCE']['SNP_38']
+            SNP_VERSION = config['REFERENCE']['SNP38_VERSION']
+            SNP_DB = config['REFERENCE']['SNP38_DB']
     else:
         # no config file, try read from env
         if args.grch37:
-            REFERENCE = os.environ.get('REF_37', None)
-            SNP = os.environ.get('SNP_37', None)
+            REFERENCE = os.environ.get('REF_37', False)
+            SNP = os.environ.get('SNP_37', False)
+            SNP_VERSION = os.environ.get('SNP37_VERSION', False)
+            SNP_DB = os.environ.get('SNP37_DB', False)
         else:
-            REFERENCE = os.environ.get('REF_38', None)
-            SNP = os.environ.get('SNP_37', None)
-        VERSION = os.environ.get('PRIMER_VERSION', None)
-        SNP_VERSION = os.environ.get('SNP_VERSION', None)
+            REFERENCE = os.environ.get('REF_38', False)
+            SNP = os.environ.get('SNP_38', False)
+            SNP_VERSION = os.environ.get('SNP38_VERSION', False)
+            SNP_DB = os.environ.get('SNP38_DB', False)
 
-    if not REFERENCE and not SNP:
-        raise ValueError('Missing path for reference or snp')
+        VERSION = os.environ.get('PRIMER_VERSION', False)
 
-    return REFERENCE, SNP, VERSION, SNP_VERSION
+    if not all([REFERENCE, SNP, SNP_VERSION, SNP_DB, VERSION]):
+        raise ValueError('Missing env variable. Please check docker run cmd')
+    return REFERENCE, SNP, VERSION, SNP_VERSION, SNP_DB
 
 
 def main():
@@ -1835,10 +1842,11 @@ def main():
     global FONT
     global TMP_FILES
     global SNP_VERSION
+    global SNP_DB
 
     # parse args, load in file paths from config
     args = parse_args()
-    REFERENCE, SNP, VERSION, SNP_VERSION = load_config(args)
+    REFERENCE, SNP, VERSION, SNP_VERSION, SNP_DB = load_config(args)
 
     # check required tools installed and on PATH
     for tool in ['samtools', 'tabix', 'primer3_core', 'smalt']:
