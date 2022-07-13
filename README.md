@@ -92,8 +92,9 @@ Example:
 ## Environment Variable
 1. `REF_37 / REF_38`: path to human reference genome (fasta) file
 2. `SNP_37 / SNP_38`: path to snps database
-3. `PRIMER_VERSION`: current primer designer release version
-4. `SNP_VERSION`: snps database version
+3. `SNP37_VERSION / SNP38_VERSION`: snp population version e.g. 2.0.1
+4. `SNP37_DB / SNP38_DB`: snp population database e.g. gnomad
+5. `PRIMER_VERSION`: current primer designer release version
 
 ## Docker Usage
 
@@ -106,7 +107,8 @@ docker build -t primer_designer .
 
 docker run -v /home/$USER/reference_files:/reference_files -v $PWD:/home/primer_designer/output --env-file {config-file) {image-name} primer_designer python bin/primer_designer_region.py --chr 12 --pos 56489061 --grch37
 
-docker run -v /path/to/reference_files:/reference_files -v /path/to/test_output:/home/primer_designer/output --env REF_37=/reference_files/grch37/hs37d5.fa --env SNP_37=/reference_files/grch37/gnomad.genomes.r2.0.1.sites.noVEP.AF-0.01.infoRemoved.vcf.gz --env PRIMER_VERSION=2.0.0 --env SNP_VERSION=2.0.1 primer_designer python bin/primer_designer_region.py --chr 12 --pos 56489061 --grch37
+docker run -v /home/jason/github/primer_designer/test/reference_files:/reference_files -v /home/jason/github/primer_designer/test/test_output:/home/primer_designer/output --env REF_37=/reference_files/grch37/hs37d5.fa --env SNP_37=/reference_files/grch37/gnomad.genomes.r2.0.1.sites.noVEP.AF-0.01.infoRemoved.vcf.gz --env PRIMER_VERSION=2.0.1 --env SNP37_VERSION=2.0.1 --env SNP37_DB=gnomad primer_designer:2.0.1 python -u bin/primer_designer_region.py --chr 12 --pos 56489061 --grch37
+
 ```
 In the above example a local dir `/home/$USER/reference_files/` contains the reference files and is mounted in the container at `/reference_files`. The environment variables in `{config-file}` are passed with paths to the files relative from the reference files dir in the container (i.e. `REF37=/reference_files/grch37.fa`).
 
