@@ -9,7 +9,7 @@ Primers may be designed for single positions, ranges of regions and also breakpo
 Key highlights:
 - generates up to 5 pairs of designed primers for given position(s) with GC% and TM
 - identifies number of mappings (if not unique)
-- highlights SNPs from dbSNP
+- highlights SNPs from common SNPs database file
 - highlights repeat regions of >6 bases
 - highlights bases up and downstream of target
 
@@ -18,14 +18,14 @@ Key highlights:
 ## Requirements
 
 - python >=3.6
-- [primer3][primer3-url] (2.3.7)
-- [smalt][smalt-url] (0.7.6)
-- [samtools][samtools-url] (1.5)
-- GRCh37 & GRCh38 reference FASTA files (+ indexes)
-- GRCh37 & GRCh38 [dbSNP VCFs][dbsnp-url] (+ indexes)
-- Docker (optional)
+- [primer3][primer3-url]
+- [smalt][smalt-url]
+- [samtools][samtools-url]
+- GRCh37 & GRCh38 human genome reference FASTA files (+ indexes)
+- GRCh37 & GRCh38 common SNPs vcf / vcf.gz (+ indexes)
+- Docker
 
-n.b. index files for reference genome and dbSNP vcf need generating with both `samtools faidx` and `smalt index INDEX REFSEQ-FILE`
+n.b. index files for reference genome and SNPs vcf need generating with both `samtools faidx` and `smalt index INDEX REFSEQ-FILE`
 
 - default setting for smalt index: -k 13 -s 13, where k is word length and s is stepsiz
 - recommended setting for 11-24 base reads (i.e. primers): `-k 11 -s 2`, the use of wordlen and stepsiz affects memory requirement, speed, sensitivity and accuracy of mapping, check manual for further details
@@ -38,8 +38,8 @@ n.b. index files for reference genome and dbSNP vcf need generating with both `s
   - {reference_genome}.fasta.fai
   - {reference_genome}.fasta.sma
   - {reference_genome}.fasta.smi
-  - {dbsnp}.vcf.gz
-  - {dbsnp}.vcf.gz.tbi
+  - {snp}.vcf.gz
+  - {snp}.vcf.gz.tbi
 
 
 ***
@@ -89,6 +89,12 @@ Example:
 <br></br>
 
 ***
+## Environment Variable
+1. `REF_37 / REF_38`: path to human reference genome (fasta) file
+2. `SNP_37 / SNP_38`: path to snps database
+3. `SNP37_VERSION / SNP38_VERSION`: snp population version e.g. 2.0.1
+4. `SNP37_DB / SNP38_DB`: snp population database e.g. gnomad
+5. `PRIMER_VERSION`: current primer designer release version
 
 ## Docker Usage
 
@@ -97,12 +103,12 @@ A dockerfile is provided that allows for building a full working image of primer
 Reference files must still be provided as before, either via a config file or environment variables. It is advised to mount the volume containing these when running and pass the paths relative to the file location within the mounted volume, i.e:
 
 ```
-docker run \
--v /home/$USER/reference_files:/reference_files \
--v $PWD:/home/primer_designer/output \
---env-file {config-file) \
-{image-name}:{tag}
-primer_designer -c 8 -p 21988118 --grch37
+docker build -t primer_designer .
+
+docker run -v /home/$USER/reference_files:/reference_files -v $PWD:/home/primer_designer/output --env-file {config-file) {image-name} primer_designer python bin/primer_designer_region.py --chr 12 --pos 56489061 --grch37
+
+docker run -v /home/jason/github/primer_designer/test/reference_files:/reference_files -v /home/jason/github/primer_designer/test/test_output:/home/primer_designer/output --env REF_37=/reference_files/grch37/hs37d5.fa --env SNP_37=/reference_files/grch37/gnomad.genomes.r2.0.1.sites.noVEP.AF-0.01.infoRemoved.vcf.gz --env PRIMER_VERSION=2.0.1 --env SNP37_VERSION=2.0.1 --env SNP37_DB=gnomad primer_designer:2.0.1 python -u bin/primer_designer_region.py --chr 12 --pos 56489061 --grch37
+
 ```
 In the above example a local dir `/home/$USER/reference_files/` contains the reference files and is mounted in the container at `/reference_files`. The environment variables in `{config-file}` are passed with paths to the files relative from the reference files dir in the container (i.e. `REF37=/reference_files/grch37.fa`).
 

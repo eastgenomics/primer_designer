@@ -5,3 +5,4 @@ primer_designer.cfg
 *.primer3
 *.fasta
 test/reference_files
+.env

@@ -32,7 +32,7 @@ NR_PRIMERS = 4
 ALLOWED_MISMATCHES = 5
 MAX_MAPPINGS = 5
 REFERENCE = None  # depends on the chosen reference genome
-DBSNP = None  # depends on the chosen reference genome
+SNP = None  # depends on the chosen reference genome
 
 # font file in static dir
 FONT = TTFont(
@@ -315,7 +315,7 @@ class Sequence():
                     f'{sequence_list[len(tags) - TARGET_LEAD]} ['
                 )
 
-            dbSNPs = self.fetch_known_SNPs(DBSNP, chrom, startpos, endpos)
+            dbSNPs = self.fetch_known_SNPs(SNP, chrom, startpos, endpos)
             tags = self.markup_repeats(tags, sequence['SEQ'])
 
             sequence_list, tagged_string = self.markup_SNPs(
@@ -355,7 +355,7 @@ class Sequence():
                 (- flank + TARGET_LEAD) - 1] + '] '
 
             dbSNPs = self.fetch_known_SNPs(
-                DBSNP, chrom, startpos - flank, endpos + flank
+                SNP, chrom, startpos - flank, endpos + flank
             )
 
             tags = self.markup_repeats(tags, sequence)
@@ -423,21 +423,8 @@ class Sequence():
                 continue
 
             # split out required fields from snp record in vcf
-            _, snp_pos, _, snp_ref, _, _, _, info = dbSNP
+            _, snp_pos, _, snp_ref, _, _, _, _ = dbSNP
             snp_pos = int(snp_pos)
-
-            # parse common value from info field
-            try:
-                common = re.search(r'(COMMON=.)', info).group(1).split('=')[1]
-            except Exception as e:
-                # common value missing, should always be there
-                # catching everything as no idea what errors it could raise
-                print(f'Error with SNP record: {dbSNP}\n{e}')
-                continue
-
-            if common == '0':
-                # not a common snp, don't mask
-                continue
 
             if FUSION:
                 if side == "<":
@@ -457,9 +444,7 @@ class Sequence():
                 ):
                     continue
 
-                if common == '1':
-                    # common => mark position to be masked
-                    mask_pos = snp_pos - (startpos - FLANK)
+                mask_pos = snp_pos - (startpos - FLANK)
 
             for i in range(0, len(snp_ref)):
                 # should normally just be one base but can be larger
@@ -1622,19 +1607,18 @@ class Report():
         lines.append(
             f'Created at {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}'
         )
-        lines.append(f'dbSNP file used: {Path(DBSNP).stem}')
+        lines.append(f'SNP file used: {Path(SNP).stem}')
         lines.append(f'Human reference version: {ref} ({Path(REFERENCE).stem})')
 
         # add final footer text, split over lines as line breaks refused
         # to work and I don't care enough to debug reportlab
         lines.append('')
         lines.append((
-            'Common SNP annotation: A common SNP is one that has at least one '
-            '1000 Genomes population with a minor allele '
+            'Common SNP annotation: A common SNP is one that has (minor) allele frequency '
+            'higher than or equal to 1%'
         ))
         lines.append((
-            'of frequency >= 1% and for which 2 or more founders contribute to '
-            'that minor allele frequency.'
+            f'in the {SNP_DB} database version {SNP_VERSION}'
         ))
 
         lines.append('')
@@ -1817,29 +1801,38 @@ def load_config(args):
 
         if args.grch37:
             REFERENCE = config['REFERENCE']['REF_37']
-            DBSNP = config['REFERENCE']['DBSNP_37']
+            SNP = config['REFERENCE']['SNP_37']
+            SNP_VERSION = config['REFERENCE']['SNP37_VERSION']
+            SNP_DB = config['REFERENCE']['SNP37_DB']
         else:
             REFERENCE = config['REFERENCE']['REF_38']
-            DBSNP = config['REFERENCE']['DBSNP_38']
+            SNP = config['REFERENCE']['SNP_38']
+            SNP_VERSION = config['REFERENCE']['SNP38_VERSION']
+            SNP_DB = config['REFERENCE']['SNP38_DB']
     else:
         # no config file, try read from env
         if args.grch37:
-            REFERENCE = os.environ.get('REF_37', None)
-            DBSNP = os.environ.get('DBSNP_37', None)
+            REFERENCE = os.environ.get('REF_37', False)
+            SNP = os.environ.get('SNP_37', False)
+            SNP_VERSION = os.environ.get('SNP37_VERSION', False)
+            SNP_DB = os.environ.get('SNP37_DB', False)
         else:
-            REFERENCE = os.environ.get('REF_38', None)
-            DBSNP = os.environ.get('DBSNP_38', None)
+            REFERENCE = os.environ.get('REF_38', False)
+            SNP = os.environ.get('SNP_38', False)
+            SNP_VERSION = os.environ.get('SNP38_VERSION', False)
+            SNP_DB = os.environ.get('SNP38_DB', False)
 
-    if not REFERENCE and not DBSNP:
-        raise ValueError('Missing path for reference or dbsnp')
+        VERSION = os.environ.get('PRIMER_VERSION', False)
 
-    return REFERENCE, DBSNP
+    if not all([REFERENCE, SNP, SNP_VERSION, SNP_DB, VERSION]):
+        raise ValueError('Missing env variable. Please check docker run cmd')
+    return REFERENCE, SNP, VERSION, SNP_VERSION, SNP_DB
 
 
 def main():
     global FUSION
     global TARGET_LEAD
-    global DBSNP
+    global SNP
     global FLANK
     global NR_PRIMERS
     global ALLOWED_MISMATCHES
@@ -1848,10 +1841,12 @@ def main():
     global VERSION
     global FONT
     global TMP_FILES
+    global SNP_VERSION
+    global SNP_DB
 
     # parse args, load in file paths from config
     args = parse_args()
-    REFERENCE, DBSNP = load_config(args)
+    REFERENCE, SNP, VERSION, SNP_VERSION, SNP_DB = load_config(args)
 
     # check required tools installed and on PATH
     for tool in ['samtools', 'tabix', 'primer3_core', 'smalt']:
