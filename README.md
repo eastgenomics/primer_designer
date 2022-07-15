@@ -22,7 +22,7 @@ Key highlights:
 - [smalt][smalt-url]
 - [samtools][samtools-url]
 - GRCh37 & GRCh38 human genome reference FASTA files (+ indexes)
-- GRCh37 & GRCh38 common SNPs file (+ indexes)
+- GRCh37 & GRCh38 common SNPs vcf / vcf.gz (+ indexes)
 - Docker
 
 n.b. index files for reference genome and SNPs vcf need generating with both `samtools faidx` and `smalt index INDEX REFSEQ-FILE`
