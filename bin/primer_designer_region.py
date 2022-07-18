@@ -1724,6 +1724,7 @@ def parse_args():
     )
 
     parser.add_argument('-o', '--output', help='output filename prefix')
+    parser.add_argument('-d', '--directory', help='directory to generate pdfs')
     parser.add_argument(
         '-f', '--flank', type=int,
         help='flank region to design within (default: 500)'
@@ -1933,7 +1934,13 @@ def main():
             )
 
     # generate output PDF report, write to output dir in folder
-    output_dir = f'{os.path.dirname(os.path.dirname(os.path.abspath(__file__)))}/output/'
+    parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
+    if args.directory:
+        output_dir = f'{parent_dir}/output/{args.directory}/'
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
+    else:
+        output_dir = f'{parent_dir}/output/'
 
     if args.output:
         filename = f'{output_dir}{args.output}'
