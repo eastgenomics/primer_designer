@@ -158,8 +158,10 @@ class Fusion():
                 # add DARK_SIDE tag same as side
                 seqs_dict[i]['DARK_SIDE'] = "<"
 
-            elif seqs_dict[i]['SIDE'] == ">" and \
-                    seqs_dict[i]['STRAND'] == "-1":
+            elif (
+                seqs_dict[i]['SIDE'] == ">" and
+                seqs_dict[i]['STRAND'] == "-1"
+                    ):
                 # on rev strand, get reverse complement of nroaml and marked
                 # sequence, reverse tagged seq and add DARK_SIDE
                 seqs_dict[i]['SEQ'] = "".join(complement.get(
@@ -171,8 +173,10 @@ class Fusion():
                 seqs_dict[i]['TSEQ'] = seqs_dict[i]['TSEQ'][::-1]
                 seqs_dict[i]['DARK_SIDE'] = "<"
 
-            elif seqs_dict[i]['SIDE'] == "<" and \
-                    seqs_dict[i]['STRAND'] == "-1":
+            elif (
+                seqs_dict[i]['SIDE'] == "<" and
+                seqs_dict[i]['STRAND'] == "-1"
+                    ):
                 # on rev strand, get reverse complement of nroaml and marked
                 # sequence, reverse tagged seq and add DARK_SIDE
                 seqs_dict[i]['SEQ'] = "".join(complement.get(
@@ -184,8 +188,10 @@ class Fusion():
                 seqs_dict[i]['TSEQ'] = seqs_dict[i]['TSEQ'][::-1]
                 seqs_dict[i]['DARK_SIDE'] = ">"
 
-        if seqs_dict[0]['DARK_SIDE'] == ">" and \
-                seqs_dict[1]['DARK_SIDE'] == "<":
+        if (
+            seqs_dict[0]['DARK_SIDE'] == ">" and
+            seqs_dict[1]['DARK_SIDE'] == "<"
+                ):
             # one set seqs before and after breakpoint => valid (?)
             target_sequence = ''.join(
                 [seqs_dict[0]['SEQ'], seqs_dict[1]['SEQ']])
@@ -194,8 +200,10 @@ class Fusion():
             tagged_string = ''.join(
                 [seqs_dict[0]['TSEQ'], seqs_dict[1]['TSEQ']])
 
-        elif seqs_dict[0]['DARK_SIDE'] == "<" and \
-                seqs_dict[1]['DARK_SIDE'] == ">":
+        elif (
+            seqs_dict[0]['DARK_SIDE'] == "<" and
+            seqs_dict[1]['DARK_SIDE'] == ">"
+                ):
             # one set seqs before and after breakpoint => valid (?)
             target_sequence = ''.join(
                 [seqs_dict[1]['SEQ'], seqs_dict[0]['SEQ']])
@@ -1327,14 +1335,18 @@ class Report():
                 target_sequence = coord_dict[0]['SEQ']
                 tagged_string = coord_dict[0]['TSEQ']
 
-                if coord_dict[0]['SIDE'] == "<" and \
-                        coord_dict[0]['STRAND'] == "-1":
+                if (
+                    coord_dict[0]['SIDE'] == "<" and
+                    coord_dict[0]['STRAND'] == "-1"
+                        ):
                     # the coordinates are printed FLANK bases down the given
                     # position s
                     base1 = int(coord_dict[0]['POS']) + FLANK
 
-                elif coord_dict[0]['SIDE'] == ">" and \
-                        coord_dict[0]['STRAND'] == "1":
+                elif (
+                    coord_dict[0]['SIDE'] == ">" and
+                    coord_dict[0]['STRAND'] == "1"
+                        ):
                     base1 = int(coord_dict[0]['POS']) - FLANK
 
                 side = coord_dict[0]['DARK_SIDE']
@@ -1368,14 +1380,18 @@ class Report():
                 target_sequence = coord_dict[1]['SEQ']
                 tagged_string = coord_dict[1]['TSEQ']
 
-                if coord_dict[1]['SIDE'] == "<" and \
-                        coord_dict[1]['STRAND'] == "-1":
+                if (
+                    coord_dict[1]['SIDE'] == "<" and
+                    coord_dict[1]['STRAND'] == "-1"
+                        ):
                     # the coordinates are printed FLANK bases down the given
                     # position s
                     base1 = int(coord_dict[1]['POS']) + FLANK
 
-                elif coord_dict[1]['SIDE'] == ">" and \
-                        coord_dict[1]['STRAND'] == "1":
+                elif (
+                    coord_dict[1]['SIDE'] == ">" and
+                    coord_dict[1]['STRAND'] == "1"
+                        ):
                     # the coordinates are printed FLANK bases down the given
                     # position
                     base1 = int(coord_dict[1]['POS']) - FLANK
