@@ -22,8 +22,6 @@ from reportlab.pdfgen import canvas
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
 
-from version import VERSION
-
 # Default parameters
 FLANK = 500
 FUSION = False
@@ -160,7 +158,10 @@ class Fusion():
                 # add DARK_SIDE tag same as side
                 seqs_dict[i]['DARK_SIDE'] = "<"
 
-            elif seqs_dict[i]['SIDE'] == ">" and seqs_dict[i]['STRAND'] == "-1":
+            elif (
+                seqs_dict[i]['SIDE'] == ">" and
+                seqs_dict[i]['STRAND'] == "-1"
+                    ):
                 # on rev strand, get reverse complement of nroaml and marked
                 # sequence, reverse tagged seq and add DARK_SIDE
                 seqs_dict[i]['SEQ'] = "".join(complement.get(
@@ -172,7 +173,10 @@ class Fusion():
                 seqs_dict[i]['TSEQ'] = seqs_dict[i]['TSEQ'][::-1]
                 seqs_dict[i]['DARK_SIDE'] = "<"
 
-            elif seqs_dict[i]['SIDE'] == "<" and seqs_dict[i]['STRAND'] == "-1":
+            elif (
+                seqs_dict[i]['SIDE'] == "<" and
+                seqs_dict[i]['STRAND'] == "-1"
+                    ):
                 # on rev strand, get reverse complement of nroaml and marked
                 # sequence, reverse tagged seq and add DARK_SIDE
                 seqs_dict[i]['SEQ'] = "".join(complement.get(
@@ -184,17 +188,29 @@ class Fusion():
                 seqs_dict[i]['TSEQ'] = seqs_dict[i]['TSEQ'][::-1]
                 seqs_dict[i]['DARK_SIDE'] = ">"
 
-        if seqs_dict[0]['DARK_SIDE'] == ">" and seqs_dict[1]['DARK_SIDE'] == "<":
+        if (
+            seqs_dict[0]['DARK_SIDE'] == ">" and
+            seqs_dict[1]['DARK_SIDE'] == "<"
+                ):
             # one set seqs before and after breakpoint => valid (?)
-            target_sequence = ''.join([seqs_dict[0]['SEQ'], seqs_dict[1]['SEQ']])
-            marked_sequence = ''.join([seqs_dict[0]['MSEQ'], seqs_dict[1]['MSEQ']])
-            tagged_string = ''.join([seqs_dict[0]['TSEQ'], seqs_dict[1]['TSEQ']])
+            target_sequence = ''.join(
+                [seqs_dict[0]['SEQ'], seqs_dict[1]['SEQ']])
+            marked_sequence = ''.join(
+                [seqs_dict[0]['MSEQ'], seqs_dict[1]['MSEQ']])
+            tagged_string = ''.join(
+                [seqs_dict[0]['TSEQ'], seqs_dict[1]['TSEQ']])
 
-        elif seqs_dict[0]['DARK_SIDE'] == "<" and seqs_dict[1]['DARK_SIDE'] == ">":
+        elif (
+            seqs_dict[0]['DARK_SIDE'] == "<" and
+            seqs_dict[1]['DARK_SIDE'] == ">"
+                ):
             # one set seqs before and after breakpoint => valid (?)
-            target_sequence = ''.join([seqs_dict[1]['SEQ'], seqs_dict[0]['SEQ']])
-            marked_sequence = ''.join([seqs_dict[1]['MSEQ'], seqs_dict[0]['MSEQ']])
-            tagged_string = ''.join([seqs_dict[1]['TSEQ'], seqs_dict[0]['TSEQ']])
+            target_sequence = ''.join(
+                [seqs_dict[1]['SEQ'], seqs_dict[0]['SEQ']])
+            marked_sequence = ''.join(
+                [seqs_dict[1]['MSEQ'], seqs_dict[0]['MSEQ']])
+            tagged_string = ''.join(
+                [seqs_dict[1]['TSEQ'], seqs_dict[0]['TSEQ']])
 
         else:
             # I think it gets here if both of the coordinates are either
@@ -1319,12 +1335,18 @@ class Report():
                 target_sequence = coord_dict[0]['SEQ']
                 tagged_string = coord_dict[0]['TSEQ']
 
-                if coord_dict[0]['SIDE'] == "<" and coord_dict[0]['STRAND'] == "-1":
+                if (
+                    coord_dict[0]['SIDE'] == "<" and
+                    coord_dict[0]['STRAND'] == "-1"
+                        ):
                     # the coordinates are printed FLANK bases down the given
                     # position s
                     base1 = int(coord_dict[0]['POS']) + FLANK
 
-                elif coord_dict[0]['SIDE'] == ">" and coord_dict[0]['STRAND'] == "1":
+                elif (
+                    coord_dict[0]['SIDE'] == ">" and
+                    coord_dict[0]['STRAND'] == "1"
+                        ):
                     base1 = int(coord_dict[0]['POS']) - FLANK
 
                 side = coord_dict[0]['DARK_SIDE']
@@ -1358,12 +1380,18 @@ class Report():
                 target_sequence = coord_dict[1]['SEQ']
                 tagged_string = coord_dict[1]['TSEQ']
 
-                if coord_dict[1]['SIDE'] == "<" and coord_dict[1]['STRAND'] == "-1":
+                if (
+                    coord_dict[1]['SIDE'] == "<" and
+                    coord_dict[1]['STRAND'] == "-1"
+                        ):
                     # the coordinates are printed FLANK bases down the given
                     # position s
                     base1 = int(coord_dict[1]['POS']) + FLANK
 
-                elif coord_dict[1]['SIDE'] == ">" and coord_dict[1]['STRAND'] == "1":
+                elif (
+                    coord_dict[1]['SIDE'] == ">" and
+                    coord_dict[1]['STRAND'] == "1"
+                        ):
                     # the coordinates are printed FLANK bases down the given
                     # position
                     base1 = int(coord_dict[1]['POS']) - FLANK
@@ -1529,8 +1557,7 @@ class Report():
 
     def pretty_pdf_method(self, top_offset, args, c, seqs=None):
         """
-        Function to do something to the pdf - not sure what...
-            - think it might just be writing the blurb to the report?
+        Function to write common snp annotation text in pdf
 
         Args:
 
@@ -1601,25 +1628,22 @@ class Report():
         # record cmd line args used, split into 3 per line to limit length
         cmd_args = []
         [cmd_args.append(f'--{k} {v}') for k, v in vars(args).items() if v][0]
-        cmd_args = ['; '.join(cmd_args[i:i + 3]) for i in range(0, len(cmd_args), 3)]
+        cmd_args = [
+            '; '.join(cmd_args[i:i + 3]) for i in range(0, len(cmd_args), 3)]
 
         lines.append('')
         lines.append(
             f'Created at {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}'
         )
         lines.append(f'SNP file used: {Path(SNP).stem}')
-        lines.append(f'Human reference version: {ref} ({Path(REFERENCE).stem})')
+        lines.append(
+            f'Human reference version: {ref} ({Path(REFERENCE).stem})')
 
         # add final footer text, split over lines as line breaks refused
         # to work and I don't care enough to debug reportlab
         lines.append('')
-        lines.append((
-            'Common SNP annotation: A common SNP is one that has (minor) allele frequency '
-            'higher than or equal to 1%'
-        ))
-        lines.append((
-            f'in the {SNP_DB} database version {SNP_VERSION}'
-        ))
+        for line in PRIMER_TEXT:
+            lines.append(line)
 
         lines.append('')
         lines.append(f'primer-designer version: {VERSION}')
@@ -1682,7 +1706,8 @@ class Report():
                 name, primer3_results["PRIMER_" + name + "_GC_PERCENT"],
                 primer3_results["PRIMER_" + name + "_TM"],
                 primer3_results["PRIMER_" + name + "_SEQUENCE"],
-                passed_primers["PRIMER_" + name + "_SEQUENCE"]['MAPPING_SUMMARY']
+                passed_primers["PRIMER_" + name + "_SEQUENCE"][
+                    'MAPPING_SUMMARY']
             ]))
 
         lines.append("\n")
@@ -1711,8 +1736,8 @@ def parse_args():
     fusion_arg = parser.add_argument(
         '--fusion', action="store_true",
         help=(
-            "Design primers around breakpoint. --b1 and --b2 must be specified "
-            "and in this format chr:pos:side:strand, where side = a or b "
+            "Design primers around breakpoint. --b1 and --b2 must be specified"
+            " and in this format chr:pos:side:strand, where side = a or b "
             "(after or before breakpoint) and strand = 1 or -1"
         )
     )
@@ -1749,7 +1774,6 @@ def parse_args():
         raise argparse.ArgumentError(
             ref_arg, 'Please select a reference genome to use'
         )
-
 
     if args.chr and not (args.pos or args.range):
         parser.print_help()
@@ -1803,31 +1827,51 @@ def load_config(args):
         if args.grch37:
             REFERENCE = config['REFERENCE']['REF_37']
             SNP = config['REFERENCE']['SNP_37']
-            SNP_VERSION = config['REFERENCE']['SNP37_VERSION']
-            SNP_DB = config['REFERENCE']['SNP37_DB']
+            raw_txt = config['REFERENCE']['PRIMER37_TEXT']
         else:
             REFERENCE = config['REFERENCE']['REF_38']
             SNP = config['REFERENCE']['SNP_38']
-            SNP_VERSION = config['REFERENCE']['SNP38_VERSION']
-            SNP_DB = config['REFERENCE']['SNP38_DB']
+            raw_txt = config['REFERENCE']['PRIMER38_TEXT']
     else:
         # no config file, try read from env
         if args.grch37:
             REFERENCE = os.environ.get('REF_37', False)
             SNP = os.environ.get('SNP_37', False)
-            SNP_VERSION = os.environ.get('SNP37_VERSION', False)
-            SNP_DB = os.environ.get('SNP37_DB', False)
+            raw_txt = os.environ.get('PRIMER37_TEXT', False)
         else:
             REFERENCE = os.environ.get('REF_38', False)
             SNP = os.environ.get('SNP_38', False)
-            SNP_VERSION = os.environ.get('SNP38_VERSION', False)
-            SNP_DB = os.environ.get('SNP38_DB', False)
+            raw_txt = os.environ.get('PRIMER38_TEXT', False)
 
-        VERSION = os.environ.get('PRIMER_VERSION', False)
+    VERSION = os.environ.get('PRIMER_VERSION', False)
+    PRIMER_TEXT = get_chunks(raw_txt, 100)
 
-    if not all([REFERENCE, SNP, SNP_VERSION, SNP_DB, VERSION]):
+    if not all([REFERENCE, SNP, VERSION, raw_txt]):
         raise ValueError('Missing env variable. Please check docker run cmd')
-    return REFERENCE, SNP, VERSION, SNP_VERSION, SNP_DB
+    return REFERENCE, SNP, VERSION, PRIMER_TEXT
+
+
+def get_chunks(sentence: str, maxlength: int):
+    """
+    Credit: https://stackoverflow.com/questions/57023348/python-splitting-
+        a-long-text-into-chunks-of-strings-given-character-limit
+    Function to chunk long sentence into smaller chunk
+
+    Input:
+        sentence: input sentence
+        maxlength: chunk length
+
+    Return:
+        list object generator
+
+    """
+    start = 0
+    end = 0
+    while start + maxlength < len(sentence) and end != -1:
+        end = sentence.rfind(" ", start, start + maxlength + 1)
+        yield sentence[start:end]
+        start = end + 1
+    yield sentence[start:]
 
 
 def main():
@@ -1842,12 +1886,11 @@ def main():
     global VERSION
     global FONT
     global TMP_FILES
-    global SNP_VERSION
-    global SNP_DB
+    global PRIMER_TEXT
 
     # parse args, load in file paths from config
     args = parse_args()
-    REFERENCE, SNP, VERSION, SNP_VERSION, SNP_DB = load_config(args)
+    REFERENCE, SNP, VERSION, PRIMER_TEXT = load_config(args)
 
     # check required tools installed and on PATH
     for tool in ['samtools', 'tabix', 'primer3_core', 'smalt']:
@@ -1876,7 +1919,6 @@ def main():
         startpos = args.pos
         endpos = args.pos
         seqs = None
-
 
     # Sequence retrieval and markup
 
@@ -1912,7 +1954,6 @@ def main():
         else:
             region_id = "{}_{}_{}".format(chrom, startpos, endpos)
 
-
     # Creating primers, choosing the best ones and converting to strings
     primer3_results = primer3.run_primer3(region_id, marked_sequence)
 
@@ -1935,7 +1976,7 @@ def main():
 
     # generate output PDF report, write to output dir in folder
     parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    
+
     if args.directory:
         output_dir = f'{parent_dir}/output/{args.directory}/'
         Path(output_dir).mkdir(parents=True, exist_ok=True)
