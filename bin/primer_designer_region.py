@@ -1637,10 +1637,24 @@ class Report():
         )
         lines.append(f'SNP file used: {Path(SNP).stem}')
 
-        ref_genome = Path(REFERENCE).stem
-        ref_genome = ref_genome[:70] if len(ref_genome) > 70 else ref_genome
-        lines.append(
-            f'Human reference version: {ref} ({ref_genome})')
+        if len(Path(REFERENCE).stem) > 70:
+            # break long string into chunks of 70
+            long_string = Path(REFERENCE).stem
+            texts = [long_string[i:i+70] for i in range(0, len(long_string), 70)]
+            for idx, val in enumerate(texts):
+                if idx == 0:
+                    # first line
+                    lines.append(
+                        f'Human reference version: {ref} ({val}')
+                elif idx == len(texts) - 1:
+                    # last line
+                    lines.append(f'{val})')
+                else:
+                    # middle lines
+                    lines.append(val)
+        else:
+            lines.append(
+                f'Human reference version: {ref} ({Path(REFERENCE).stem})')
 
         # add final footer text, split over lines as line breaks refused
         # to work and I don't care enough to debug reportlab
