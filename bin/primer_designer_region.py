@@ -1636,8 +1636,11 @@ class Report():
             f'Created at {datetime.now().strftime("%d/%m/%Y %H:%M:%S")}'
         )
         lines.append(f'SNP file used: {Path(SNP).stem}')
+
+        ref_genome = Path(REFERENCE).stem
+        ref_genome = ref_genome[:70] if len(ref_genome) > 70 else ref_genome
         lines.append(
-            f'Human reference version: {ref} ({Path(REFERENCE).stem})')
+            f'Human reference version: {ref} ({ref_genome})')
 
         # add final footer text, split over lines as line breaks refused
         # to work and I don't care enough to debug reportlab

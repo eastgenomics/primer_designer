@@ -62,15 +62,11 @@ def run_test(args, genes_df):
 
         cmd = (
             "docker run "
-            "-v /home/jason/github/primer_designer/test/reference_files:/reference "
+            "-v /home/jason/github/reference:/reference "
             f"-v /home/jason/github/primer_designer/test/test_output:/home/primer_designer/output "
-            "--env REF_37=/reference/grch37/hs37d5.fa "
-            "--env SNP_37=/reference/grch37/gnomad.genomes.r2.0.1.sites.noVEP.AF-0.01.infoRemoved.vcf.gz "
-            "--env PRIMER_VERSION=2.0.0 "
-            "--env SNP37_VERSION=2.0.1 "
-            "--env SNP37_DB=gnomad "
-            "primer_designer:2.0.1 "
-            f"python -u bin/primer_designer_region.py --chr {chr} --pos {random_pos} --grch37"
+            "--env-file /home/jason/github/primer_designer/.env "
+            "primer_designer:2.0.2 "
+            f"python -u bin/primer_designer_region.py --chr {chr} --pos {random_pos} --grch38"
         )
 
         # call primer designer docker to generate report
