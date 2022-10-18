@@ -8,8 +8,6 @@ import os
 import pandas as pd
 import random
 import subprocess
-import sys
-import traceback
 
 
 def load_bed():
@@ -36,7 +34,7 @@ def run_test(args, genes_df):
         - genes_df (df): df of bed file
     """
     # get random sample of rows
-    args.total = 1 if args.total == None else args.total
+    args.total = 1 if args.total is None else args.total
     random_sample = genes_df.sample(n=args.total)
 
     # list to gather errors in and write to file
@@ -60,13 +58,16 @@ def run_test(args, genes_df):
             f'Generating report {counter}/{args.total} for {chr}:{random_pos}'
         )
 
+        output = '/home/primer_designer/output'
+
         cmd = (
             "docker run "
             "-v /home/jason/github/reference:/reference "
-            f"-v /home/jason/github/primer_designer/test/test_output:/home/primer_designer/output "
+            f"-v /home/jason/github/primer_designer/test/test_output:{output} "
             "--env-file /home/jason/github/primer_designer/.env "
             "primer_designer:2.0.2 "
-            f"python -u bin/primer_designer_region.py --chr {chr} --pos {random_pos} --grch38"
+            f"python -u bin/primer_designer_region.py "
+            f'--chr {chr} --pos {random_pos} --grch38'
         )
 
         # call primer designer docker to generate report
@@ -87,6 +88,7 @@ def run_test(args, genes_df):
             print('STDERR', stderr)
 
         counter += 1
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -109,4 +111,3 @@ if __name__ == '__main__':
     args = parse_args()
     genes_df = load_bed()
     run_test(args, genes_df)
-
